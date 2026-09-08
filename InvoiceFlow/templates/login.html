@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvoiceFlow - Sign In</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: #080808;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 32px;
+        }
+
+        .login-card h1 {
+            font-size: 25px;
+            margin-bottom: 8px;
+        }
+
+        .login-card p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 13px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            border-color: #777;
+        }
+
+        .login-btn {
+            width: 100%;
+            border: none;
+            background: #fff;
+            color: #000;
+            padding: 13px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .login-btn:hover {
+            background: #ccc;
+        }
+
+        .signup-text {
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .signup-text a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 700px) {
+            .login-wrapper {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="login-wrapper">
+        <section class="login-card">
+
+            <h1>Welcome back</h1>
+
+            <p>
+                Sign in to manage your invoices and payments.
+            </p>
+
+            {% if error %}
+                <div class="error-message">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="email">EMAIL</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">PASSWORD</label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Sign In
+                </button>
+
+            </form>
+
+            <div class="signup-text">
+                Don't have an account?
+
+                <a href="{% url 'signup' %}">
+                    Sign up for free
+                </a>
+            </div>
+
+        </section>
+    </main>
+
+</body>
+</html>
