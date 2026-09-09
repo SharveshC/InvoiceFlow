@@ -7,613 +7,600 @@
     <title>Clients - InvoiceFlow</title>
 
     <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-      Arial, sans-serif;
-    background: #000;
-    color: #fff;
-    min-height: 100vh;
-  }
-
-  a {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  /* =========================
-       SIDEBAR
-  ========================= */
-
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 250px;
-    height: 100vh;
-    background: #050505;
-    border-right: 1px solid #222;
-    padding: 28px 18px;
-    overflow-y: auto;
-  }
-
-  .logo {
-    font-size: 23px;
-    font-weight: 700;
-    letter-spacing: -1px;
-    padding: 0 14px;
-    margin-bottom: 35px;
-  }
-
-  .logo span {
-    color: #888;
-  }
-
-  .menu-title {
-    color: #666;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    padding: 0 14px;
-    margin-bottom: 12px;
-  }
-
-  /* =========================
-       COMPANY
-  ========================= */
-
-  .company-section {
-    margin-bottom: 30px;
-  }
-
-  .company-switcher {
-    position: relative;
-  }
-
-  .company-switcher-btn {
-    width: 100%;
-    border: 1px solid #222;
-    background: #0b0b0b;
-    color: #fff;
-    border-radius: 9px;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    text-align: left;
-    transition: 0.2s;
-  }
-
-  .company-switcher-btn:hover {
-    background: #111;
-    border-color: #333;
-  }
-
-  .company-avatar {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    border-radius: 7px;
-    background: #fff;
-    color: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .company-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .company-info strong {
-    display: block;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #fff;
-  }
-
-  .company-info small {
-    display: block;
-    color: #666;
-    font-size: 10px;
-    margin-top: 3px;
-  }
-
-  .company-arrow {
-    color: #777;
-    font-size: 11px;
-  }
-
-  .company-menu {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: calc(100% + 6px);
-    background: #080808;
-    border: 1px solid #222;
-    border-radius: 9px;
-    padding: 6px;
-    display: none;
-    z-index: 1000;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-  }
-
-  .company-menu.show {
-    display: block;
-  }
-
-  .company-menu a {
-    display: block;
-    padding: 10px;
-    border-radius: 6px;
-    color: #aaa;
-    text-decoration: none;
-    font-size: 12px;
-    transition: 0.2s;
-  }
-
-  .company-menu a:hover,
-  .company-menu a.current {
-    background: #fff;
-    color: #000;
-  }
-
-  .company-menu .create-company {
-    border-top: 1px solid #222;
-    margin-top: 5px;
-    padding-top: 11px;
-    color: #fff;
-  }
-
-  .create-company-btn {
-    display: block;
-    width: 100%;
-    padding: 11px 12px;
-    border: 1px solid #333;
-    border-radius: 8px;
-    background: #0b0b0b;
-    color: #fff;
-    text-decoration: none;
-    font-size: 12px;
-    transition: 0.2s;
-  }
-
-  .create-company-btn:hover {
-    background: #fff;
-    color: #000;
-  }
-
-  /* =========================
-       NAVIGATION
-  ========================= */
-
-  .nav-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #999;
-    transition: 0.2s;
-  }
-
-  .nav-item:hover {
-    background: #111;
-    color: #fff;
-  }
-
-  .nav-item.active {
-    background: #fff;
-    color: #000;
-  }
-
-  .nav-icon {
-    width: 20px;
-    text-align: center;
-    font-size: 15px;
-  }
-
-  .sidebar-bottom {
-    margin-top: 30px;
-  }
-
-  /* =========================
-       MAIN CONTENT
-  ========================= */
-
-  .main {
-    margin-left: 250px;
-    min-height: 100vh;
-    background: #000;
-  }
-
-  /* =========================
-       TOPBAR
-  ========================= */
-
-  .topbar {
-    height: 75px;
-    background: #050505;
-    border-bottom: 1px solid #222;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 35px;
-  }
-
-  .topbar-left h2 {
-    font-size: 20px;
-    font-weight: 650;
-    color: #fff;
-  }
-
-  .topbar-left p {
-    font-size: 12px;
-    color: #666;
-    margin-top: 3px;
-  }
-
-  .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-
-  /* =========================
-       PROFILE
-  ========================= */
-
-  .profile {
-    position: relative;
-  }
-
-  .profile-button {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid #333;
-    background: #111;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .profile-button:hover {
-    background: #1a1a1a;
-  }
-
-  .profile-menu {
-    position: absolute;
-    right: 0;
-    top: 48px;
-    width: 180px;
-    background: #080808;
-    border: 1px solid #222;
-    border-radius: 10px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-    display: none;
-    z-index: 1000;
-    overflow: hidden;
-  }
-
-  .profile-menu.show {
-    display: block;
-  }
-
-  .profile-menu a,
-  .profile-menu button {
-    display: block;
-    width: 100%;
-    padding: 12px 15px;
-    border: none;
-    background: transparent;
-    color: #fff;
-    text-align: left;
-    font-size: 13px;
-    cursor: pointer;
-  }
-
-  .profile-menu a:hover,
-  .profile-menu button:hover {
-    background: #fff;
-    color: #000;
-  }
-
-  /* =========================
-       CONTENT
-  ========================= */
-
-  .content {
-    padding: 35px;
-  }
-
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-  }
-
-  .page-header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .page-header p {
-    margin-top: 5px;
-    color: #777;
-    font-size: 14px;
-  }
-
-  .add-client-btn {
-    background: #fff;
-    color: #000;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-  }
-
-  .add-client-btn:hover {
-    background: #ccc;
-  }
-
-  /* =========================
-       SEARCH / TOOLBAR
-  ========================= */
-
-  .toolbar {
-    background: #080808;
-    border: 1px solid #222;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 18px;
-  }
-
-  .search-box {
-    width: 100%;
-    max-width: 400px;
-    padding: 11px 13px;
-    border: 1px solid #333;
-    border-radius: 8px;
-    font-size: 13px;
-    outline: none;
-    background: #0b0b0b;
-    color: #fff;
-    transition: 0.2s;
-  }
-
-  .search-box::placeholder {
-    color: #666;
-  }
-
-  .search-box:focus {
-    border-color: #777;
-    background: #101010;
-  }
-
-  /* =========================
-       CLIENT TABLE
-  ========================= */
-
-  .clients-card {
-    background: #080808;
-    border: 1px solid #222;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .table-container {
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 700px;
-    background: #080808;
-  }
-
-  th {
-    padding: 15px 18px;
-    text-align: left;
-    font-size: 11px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: #0b0b0b;
-    border-bottom: 1px solid #222;
-    font-weight: 500;
-  }
-
-  td {
-    padding: 17px 18px;
-    font-size: 13px;
-    color: #aaa;
-    border-bottom: 1px solid #181818;
-  }
-
-  tbody tr {
-    transition: 0.2s;
-  }
-
-  tbody tr:hover {
-    background: #0d0d0d;
-  }
-
-  tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .client-name {
-    font-weight: 600;
-    color: #fff;
-  }
-
-  .client-email {
-    color: #888;
-  }
-
-  .gst {
-    color: #777;
-    font-size: 12px;
-  }
-
-  /* =========================
-       EMPTY STATE
-  ========================= */
-
-  .empty {
-    text-align: center;
-    padding: 80px 20px;
-    color: #fff;
-  }
-
-  .empty-icon {
-    width: 55px;
-    height: 55px;
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 18px;
-    font-size: 23px;
-    color: #fff;
-  }
-
-  .empty h3 {
-    font-size: 17px;
-    margin-bottom: 7px;
-    color: #fff;
-  }
-
-  .empty p {
-    color: #777;
-    font-size: 13px;
-    margin-bottom: 20px;
-  }
-
-  /* =========================
-       RESPONSIVE
-  ========================= */
-
-  @media (max-width: 900px) {
-    .sidebar {
-      width: 210px;
-    }
-
-    .main {
-      margin-left: 210px;
-    }
-
-    .content {
-      padding: 25px;
-    }
-
-    .topbar {
-      padding: 0 25px;
-    }
-  }
-
-  @media (max-width: 700px) {
-    .sidebar {
-      width: 70px;
-      padding: 25px 10px;
-    }
-
-    .logo {
-      font-size: 0;
-      text-align: center;
-      padding: 0;
-    }
-
-    .logo::after {
-      content: "IF";
-      font-size: 18px;
-    }
-
-    .menu-title,
-    .company-info,
-    .company-arrow,
-    .create-company-btn {
-      display: none;
-    }
-
-    .company-switcher-btn {
-      justify-content: center;
-      padding: 8px;
-    }
-
-    .company-menu {
-      position: fixed;
-      left: 75px;
-      top: 90px;
-      width: 200px;
-      z-index: 200;
-    }
-
-    .nav-item {
-      justify-content: center;
-      padding: 12px;
-    }
-
-    .nav-item span:not(.nav-icon) {
-      display: none;
-    }
-
-    .main {
-      margin-left: 70px;
-    }
-
-    .page-header {
-      align-items: flex-start;
-      gap: 15px;
-      flex-direction: column;
-    }
-
-    .topbar {
-      padding: 0 18px;
-    }
-
-    .content {
-      padding: 20px;
-    }
-  }
-</style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background: #000;
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 250px;
+        height: 100vh;
+        background: #050505;
+        border-right: 1px solid #222;
+        padding: 28px 18px;
+        overflow-y: auto;
+      }
+
+      .logo {
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        padding: 0 14px;
+        margin-bottom: 35px;
+      }
+
+      .logo span {
+        color: #888;
+      }
+
+      .menu-title {
+        color: #666;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: 0 14px;
+        margin-bottom: 12px;
+      }
+
+      .company-section {
+        margin-bottom: 30px;
+      }
+
+      .company-switcher {
+        position: relative;
+      }
+
+      .company-switcher-btn {
+        width: 100%;
+        border: 1px solid #222;
+        background: #0b0b0b;
+        color: #fff;
+        border-radius: 9px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        text-align: left;
+        transition: 0.2s;
+      }
+
+      .company-switcher-btn:hover {
+        background: #111;
+        border-color: #333;
+      }
+
+      .company-avatar {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        border-radius: 7px;
+        background: #fff;
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .company-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .company-info strong {
+        display: block;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+
+      .company-info small {
+        display: block;
+        color: #666;
+        font-size: 10px;
+        margin-top: 3px;
+      }
+
+      .company-arrow {
+        color: #777;
+        font-size: 11px;
+      }
+
+      .company-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 9px;
+        padding: 6px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      }
+
+      .company-menu.show {
+        display: block;
+      }
+
+      .company-menu a {
+        display: block;
+        padding: 10px;
+        border-radius: 6px;
+        color: #aaa;
+        text-decoration: none;
+        font-size: 12px;
+        transition: 0.2s;
+      }
+
+      .company-menu a:hover,
+      .company-menu a.current {
+        background: #fff;
+        color: #000;
+      }
+
+      .company-menu .create-company {
+        border-top: 1px solid #222;
+        margin-top: 5px;
+        padding-top: 11px;
+        color: #fff;
+      }
+
+      .create-company-btn {
+        display: block;
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #0b0b0b;
+        color: #fff;
+        text-decoration: none;
+        font-size: 12px;
+        transition: 0.2s;
+      }
+
+      .create-company-btn:hover {
+        background: #fff;
+        color: #000;
+      }
+
+      .nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #999;
+        transition: 0.2s;
+      }
+
+      .nav-item:hover {
+        background: #111;
+        color: #fff;
+      }
+
+      .nav-item.active {
+        background: #fff;
+        color: #000;
+      }
+
+      .nav-icon {
+        width: 20px;
+        text-align: center;
+        font-size: 15px;
+      }
+
+      .sidebar-bottom {
+        margin-top: 30px;
+      }
+
+      .main {
+        margin-left: 250px;
+        min-height: 100vh;
+        background: #000;
+      }
+
+      .topbar {
+        height: 75px;
+        background: #050505;
+        border-bottom: 1px solid #222;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 35px;
+      }
+
+      .topbar-left h2 {
+        font-size: 20px;
+        font-weight: 650;
+        color: #fff;
+      }
+
+      .topbar-left p {
+        font-size: 12px;
+        color: #666;
+        margin-top: 3px;
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .profile {
+        position: relative;
+      }
+
+      .profile-button {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid #333;
+        background: #111;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .profile-button:hover {
+        background: #1a1a1a;
+      }
+
+      .profile-menu {
+        position: absolute;
+        right: 0;
+        top: 48px;
+        width: 180px;
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        display: none;
+        z-index: 1000;
+        overflow: hidden;
+      }
+
+      .profile-menu.show {
+        display: block;
+      }
+
+      .profile-menu a,
+      .profile-menu button {
+        display: block;
+        width: 100%;
+        padding: 12px 15px;
+        border: none;
+        background: transparent;
+        color: #fff;
+        text-align: left;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .profile-menu a:hover,
+      .profile-menu button:hover {
+        background: #fff;
+        color: #000;
+      }
+
+      .content {
+        padding: 35px;
+      }
+
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      .page-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .page-header p {
+        margin-top: 5px;
+        color: #777;
+        font-size: 14px;
+      }
+
+      .add-client-btn {
+        background: #fff;
+        color: #000;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+
+      .add-client-btn:hover {
+        background: #ccc;
+      }
+
+      .toolbar {
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 18px;
+      }
+
+      .search-box {
+        width: 100%;
+        max-width: 400px;
+        padding: 11px 13px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+        background: #0b0b0b;
+        color: #fff;
+        transition: 0.2s;
+      }
+
+      .search-box::placeholder {
+        color: #666;
+      }
+
+      .search-box:focus {
+        border-color: #777;
+        background: #101010;
+      }
+
+      .clients-card {
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 850px;
+        background: #080808;
+      }
+
+      th {
+        padding: 15px 18px;
+        text-align: left;
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #0b0b0b;
+        border-bottom: 1px solid #222;
+        font-weight: 500;
+      }
+
+      td {
+        padding: 17px 18px;
+        font-size: 13px;
+        color: #aaa;
+        border-bottom: 1px solid #181818;
+      }
+
+      tbody tr {
+        transition: 0.2s;
+      }
+
+      tbody tr:hover {
+        background: #0d0d0d;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .client-name {
+        font-weight: 600;
+        color: #fff;
+      }
+
+      .client-email {
+        color: #888;
+      }
+
+      .gst {
+        color: #777;
+        font-size: 12px;
+      }
+
+      .actions-header {
+        text-align: center !important;
+        width: 180px;
+      }
+
+      .actions-cell {
+        text-align: center !important;
+        white-space: nowrap;
+        width: 180px;
+      }
+
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #333;
+        border-radius: 7px;
+        background: transparent;
+        color: #aaa;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: 0.2s;
+        vertical-align: middle;
+      }
+
+      .edit-btn {
+        margin-right: 8px;
+      }
+
+      .icon-btn:hover {
+        background: #fff;
+        color: #000;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 80px 20px;
+        color: #fff;
+      }
+
+      .empty-icon {
+        width: 55px;
+        height: 55px;
+        background: #111;
+        border: 1px solid #222;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 18px;
+        font-size: 23px;
+        color: #fff;
+      }
+
+      .empty h3 {
+        font-size: 17px;
+        margin-bottom: 7px;
+        color: #fff;
+      }
+
+      .empty p {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar {
+          width: 210px;
+        }
+
+        .main {
+          margin-left: 210px;
+        }
+
+        .content {
+          padding: 25px;
+        }
+
+        .topbar {
+          padding: 0 25px;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .sidebar {
+          width: 70px;
+          padding: 25px 10px;
+        }
+
+        .logo {
+          font-size: 0;
+          text-align: center;
+          padding: 0;
+        }
+
+        .logo::after {
+          content: "IF";
+          font-size: 18px;
+        }
+
+        .menu-title,
+        .company-info,
+        .company-arrow,
+        .create-company-btn {
+          display: none;
+        }
+
+        .company-switcher-btn {
+          justify-content: center;
+          padding: 8px;
+        }
+
+        .company-menu {
+          position: fixed;
+          left: 75px;
+          top: 90px;
+          width: 200px;
+          z-index: 200;
+        }
+
+        .nav-item {
+          justify-content: center;
+          padding: 12px;
+        }
+
+        .nav-item span:not(.nav-icon) {
+          display: none;
+        }
+
+        .main {
+          margin-left: 70px;
+        }
+
+        .page-header {
+          align-items: flex-start;
+          gap: 15px;
+          flex-direction: column;
+        }
+
+        .topbar {
+          padding: 0 18px;
+        }
+
+        .content {
+          padding: 20px;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <!-- =========================
-     SIDEBAR
-========================= -->
-
     <aside class="sidebar">
-      <div class="logo">InvoiceFlow</div>
-
-      <!-- COMPANY -->
+      <div class="logo">Invoice<span>Flow</span></div>
 
       <div class="company-section">
         <div class="menu-title">Company</div>
@@ -632,12 +619,11 @@
             </div>
 
             <div class="company-info">
-              <strong> {{ current_company.name }} </strong>
-
-              <small> Current company </small>
+              <strong>{{ current_company.name }}</strong>
+              <small>Current company</small>
             </div>
 
-            <span class="company-arrow"> ▼ </span>
+            <span class="company-arrow">▼</span>
           </button>
 
           <div class="company-menu" id="companyMenu">
@@ -666,8 +652,6 @@
 
         {% endif %}
       </div>
-
-      <!-- MAIN MENU -->
 
       <div class="menu-title">Menu</div>
 
@@ -698,8 +682,6 @@
         </a>
       </nav>
 
-      <!-- BOTTOM MENU -->
-
       <div class="sidebar-bottom">
         <div class="menu-title">Other</div>
 
@@ -717,17 +699,10 @@
       </div>
     </aside>
 
-    <!-- =========================
-     MAIN
-========================= -->
-
     <main class="main">
-      <!-- TOPBAR -->
-
       <header class="topbar">
         <div class="topbar-left">
           <h2>Clients</h2>
-
           <p>Manage your customers</p>
         </div>
 
@@ -738,21 +713,17 @@
             </button>
 
             <div class="profile-menu" id="profileMenu">
-              <a href="#"> Profile </a>
-
-              <a href="#"> Settings </a>
+              <a href="#">Profile</a>
+              <a href="#">Settings</a>
 
               <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
-
                 <button type="submit">Logout</button>
               </form>
             </div>
           </div>
         </div>
       </header>
-
-      <!-- CONTENT -->
 
       <section class="content">
         <div class="page-header">
@@ -761,14 +732,14 @@
 
             <p>
               Customers belonging to
-              <strong> {{ current_company.name }} </strong>
+              <strong>{{ current_company.name }}</strong>
             </p>
           </div>
 
-          <a href="{% url 'add_client' %}" class="add-client-btn"> + Add Client </a>
+          <a href="{% url 'add_client' %}" class="add-client-btn">
+            + Add Client
+          </a>
         </div>
-
-        <!-- SEARCH -->
 
         <div class="toolbar">
           <input
@@ -779,8 +750,6 @@
             onkeyup="searchClients()"
           />
         </div>
-
-        <!-- CLIENTS -->
 
         <div class="clients-card">
           {% if customers %}
@@ -794,6 +763,7 @@
                   <th>Phone</th>
                   <th>GST Number</th>
                   <th>Address</th>
+                  <th class="actions-header">Actions</th>
                 </tr>
               </thead>
 
@@ -810,6 +780,39 @@
                   <td class="gst">{{ customer.gst_number|default:"—" }}</td>
 
                   <td>{{ customer.address }}</td>
+
+                  <td class="actions-cell">
+                    <a
+                      href="{% url 'edit_client' customer.id %}"
+                      class="icon-btn edit-btn"
+                      title="Edit Client"
+                      aria-label="Edit Client"
+                    >
+                      ✎
+                    </a>
+
+                    <form
+                      method="POST"
+                      action="{% url 'delete_client' customer.id %}"
+                      style="display: inline"
+                      onsubmit="
+                        return confirm(
+                          'Are you sure you want to delete this client?',
+                        );
+                      "
+                    >
+                      {% csrf_token %}
+
+                      <button
+                        type="submit"
+                        class="icon-btn delete-btn"
+                        title="Delete Client"
+                        aria-label="Delete Client"
+                      >
+                        🗑
+                      </button>
+                    </form>
+                  </td>
                 </tr>
 
                 {% endfor %}
@@ -826,7 +829,9 @@
 
             <p>Add your first client to start managing your customers.</p>
 
-            <a href="{% url 'add_client' %}" class="add-client-btn"> + Add Client </a>
+            <a href="{% url 'add_client' %}" class="add-client-btn">
+              + Add Client
+            </a>
           </div>
 
           {% endif %}
@@ -835,35 +840,25 @@
     </main>
 
     <script>
-      /* =========================
-       COMPANY DROPDOWN
-    ========================= */
-
       function toggleCompanyMenu() {
         const menu = document.getElementById("companyMenu");
 
-        menu.classList.toggle("show");
+        if (menu) {
+          menu.classList.toggle("show");
+        }
       }
-
-      /* =========================
-       PROFILE DROPDOWN
-    ========================= */
 
       function toggleProfileMenu() {
         const menu = document.getElementById("profileMenu");
 
-        menu.classList.toggle("show");
+        if (menu) {
+          menu.classList.toggle("show");
+        }
       }
-
-      /* =========================
-       SEARCH CLIENTS
-    ========================= */
 
       function searchClients() {
         const input = document.getElementById("searchInput");
-
         const filter = input.value.toLowerCase();
-
         const rows = document.querySelectorAll("#clientsTable tr");
 
         rows.forEach(function (row) {
@@ -877,17 +872,11 @@
         });
       }
 
-      /* =========================
-       CLOSE DROPDOWNS
-    ========================= */
-
       document.addEventListener("click", function (event) {
         const companyMenu = document.getElementById("companyMenu");
-
         const companyButton = document.getElementById("companyButton");
 
         const profileMenu = document.getElementById("profileMenu");
-
         const profileButton = document.querySelector(".profile-button");
 
         if (

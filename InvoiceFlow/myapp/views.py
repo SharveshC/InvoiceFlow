@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from .models import Company, Membership, Customer
+from .models import Company, Membership, Customer, Product
 
 
 def home(request):
@@ -307,6 +307,161 @@ def add_client(request):
         request,
         "add_client.html",
         {
+            "current_company": current_company,
+            "companies": companies,
+        }
+    )
+    
+    
+@login_required
+def edit_client(request, client_id):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
+
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    customer = Customer.objects.filter(
+        id=client_id,
+        company=current_company
+    ).first()
+
+    if customer is None:
+        return redirect("clients")
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        address = request.POST.get("address")
+        gst_number = request.POST.get("gst_number")
+
+        if not name or not email or not phone or not address:
+            return render(
+                request,
+                "edit_client.html",
+                {
+                    "customer": customer,
+                    "current_company": current_company,
+                    "companies": companies,
+                    "error": "Please fill in all required fields."
+                }
+            )
+
+        customer.name = name
+        customer.email = email
+        customer.phone = phone
+        customer.address = address
+        customer.gst_number = gst_number or None
+        customer.save()
+
+        return redirect("clients")
+
+    return render(
+        request,
+        "edit_client.html",
+        {
+            "customer": customer,
+            "current_company": current_company,
+            "companies": companies,
+        }
+    )
+    
+@login_required
+def delete_client(request, client_id):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    customer = Customer.objects.filter(
+        id=client_id,
+        company=current_company
+    ).first()
+
+    if customer is None:
+        return redirect("clients")
+
+    if request.method == "POST":
+        customer.delete()
+        return redirect("clients")
+
+    return redirect("clients")
+
+
+@login_required
+def products(request):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
+
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    products = Product.objects.filter(
+        company=current_company
+    ).order_by("-created_at")
+
+    return render(
+        request,
+        "products.html",
+        {
+            "products": products,
             "current_company": current_company,
             "companies": companies,
         }

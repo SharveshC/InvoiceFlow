@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Edit Client - InvoiceFlow</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+
+            width: 250px;
+            height: 100vh;
+
+            background: #050505;
+            border-right: 1px solid #222;
+
+            padding: 28px 18px;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: 700;
+            letter-spacing: -1px;
+
+            padding: 0 14px;
+            margin-bottom: 35px;
+        }
+
+        .menu-title {
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+
+            padding: 0 14px;
+            margin-bottom: 12px;
+        }
+
+        .company-section {
+            margin-bottom: 30px;
+        }
+
+        .company-switcher {
+            position: relative;
+        }
+
+        .company-switcher-btn {
+            width: 100%;
+
+            border: 1px solid #222;
+            background: #0b0b0b;
+            color: #fff;
+
+            border-radius: 9px;
+            padding: 10px;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .company-avatar {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+
+            border-radius: 7px;
+
+            background: #fff;
+            color: #000;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .company-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .company-info strong {
+            display: block;
+
+            font-size: 12px;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .company-info small {
+            display: block;
+
+            color: #666;
+            font-size: 10px;
+
+            margin-top: 3px;
+        }
+
+        .company-arrow {
+            color: #777;
+            font-size: 11px;
+        }
+
+        .company-menu {
+            position: absolute;
+
+            left: 0;
+            right: 0;
+
+            top: calc(100% + 6px);
+
+            background: #080808;
+            border: 1px solid #222;
+
+            border-radius: 9px;
+
+            padding: 6px;
+
+            display: none;
+
+            z-index: 1000;
+        }
+
+        .company-menu.show {
+            display: block;
+        }
+
+        .company-menu a {
+            display: block;
+
+            padding: 10px;
+
+            border-radius: 6px;
+
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .company-menu a:hover,
+        .company-menu a.current {
+            background: #fff;
+            color: #000;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 12px 14px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+            color: #999;
+        }
+
+        .nav-item:hover {
+            background: #111;
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: #fff;
+            color: #000;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .main {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #000;
+
+            padding: 35px;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .form-card {
+            max-width: 850px;
+
+            background: #080808;
+
+            border: 1px solid #222;
+
+            border-radius: 12px;
+
+            padding: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+
+            background: #0b0b0b;
+            color: #fff;
+
+            border: 1px solid #333;
+
+            border-radius: 8px;
+
+            padding: 12px;
+
+            font-size: 13px;
+
+            outline: none;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #777;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .error {
+            background: #151515;
+
+            border: 1px solid #444;
+
+            color: #fff;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            margin-bottom: 20px;
+
+            font-size: 13px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+
+            gap: 10px;
+
+            margin-top: 25px;
+
+            padding-top: 20px;
+
+            border-top: 1px solid #222;
+        }
+
+        .btn {
+            padding: 12px 18px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .cancel {
+            background: #0b0b0b;
+
+            color: #aaa;
+
+            border: 1px solid #333;
+        }
+
+        .cancel:hover {
+            color: #fff;
+            background: #151515;
+        }
+
+        .save {
+            background: #fff;
+            color: #000;
+
+            border: 1px solid #fff;
+        }
+
+        .save:hover {
+            background: #ccc;
+        }
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                width: 70px;
+            }
+
+            .main {
+                margin-left: 70px;
+                padding: 20px;
+            }
+
+            .logo {
+                font-size: 0;
+            }
+
+            .logo::after {
+                content: "IF";
+                font-size: 18px;
+            }
+
+            .menu-title,
+            .company-info,
+            .company-arrow {
+                display: none;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            InvoiceFlow
+        </div>
+
+        <div class="company-section">
+
+            <div class="menu-title">
+                Company
+            </div>
+
+            {% if companies %}
+
+            <div class="company-switcher">
+
+                <button
+                    type="button"
+                    class="company-switcher-btn"
+                    onclick="toggleCompanyMenu()"
+                >
+
+                    <div class="company-avatar">
+                        {{ current_company.name|first|upper }}
+                    </div>
+
+                    <div class="company-info">
+
+                        <strong>
+                            {{ current_company.name }}
+                        </strong>
+
+                        <small>
+                            Current company
+                        </small>
+
+                    </div>
+
+                    <span class="company-arrow">
+                        ▼
+                    </span>
+
+                </button>
+
+                <div
+                    class="company-menu"
+                    id="companyMenu"
+                >
+
+                    {% for company in companies %}
+
+                    <a
+                        href="{% url 'switch_company' company.id %}"
+                        class="{% if current_company.id == company.id %}current{% endif %}"
+                    >
+                        {{ company.name }}
+                    </a>
+
+                    {% endfor %}
+
+                    <a
+                        href="{% url 'create_company' %}"
+                    >
+                        ＋ Create Company
+                    </a>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="menu-title">
+            Menu
+        </div>
+
+        <nav class="nav">
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">⌂</span>
+                Dashboard
+            </a>
+
+            <a
+                href="#"
+                class="nav-item"
+            >
+                <span class="nav-icon">▤</span>
+                Invoices
+            </a>
+
+            <a
+                href="#"
+                class="nav-item"
+            >
+                <span class="nav-icon">＋</span>
+                Create Invoice
+            </a>
+
+            <a
+                href="{% url 'clients' %}"
+                class="nav-item active"
+            >
+                <span class="nav-icon">♙</span>
+                Clients
+            </a>
+
+            <a
+                href="#"
+                class="nav-item"
+            >
+                <span class="nav-icon">₹</span>
+                Payments
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main">
+
+        <div class="page-header">
+
+            <h1>
+                Edit Client
+            </h1>
+
+            <p>
+                Update
+                <strong>{{ customer.name }}</strong>
+                details
+            </p>
+
+        </div>
+
+
+        {% if error %}
+
+        <div class="error">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+        <div class="form-card">
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Client Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ customer.name }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            value="{{ customer.email }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Phone
+                        </label>
+
+                        <input
+                            type="text"
+                            name="phone"
+                            value="{{ customer.phone }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            GST Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="gst_number"
+                            value="{{ customer.gst_number|default:'' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group full">
+
+                        <label>
+                            Address
+                        </label>
+
+                        <textarea
+                            name="address"
+                            required
+                        >{{ customer.address }}</textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="actions">
+
+                    <a
+                        href="{% url 'clients' %}"
+                        class="btn cancel"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn save"
+                    >
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        function toggleCompanyMenu() {
+
+            const menu =
+                document.getElementById("companyMenu");
+
+            menu.classList.toggle("show");
+
+        }
+
+    </script>
+
+</body>
+
+</html>
