@@ -466,3 +466,145 @@ def products(request):
             "companies": companies,
         }
     )
+    
+@login_required
+def add_product(request):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
+
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        description = request.POST.get("description")
+        price = request.POST.get("price")
+        tax = request.POST.get("tax")
+
+        if not name or not price:
+            return render(
+                request,
+                "add_product.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "error": "Product name and price are required."
+                }
+            )
+
+        Product.objects.create(
+            company=current_company,
+            name=name,
+            description=description or None,
+            price=price,
+            tax=tax or 0
+        )
+
+        return redirect("products")
+
+    return render(
+        request,
+        "add_product.html",
+        {
+            "current_company": current_company,
+            "companies": companies,
+        }
+    )
+    
+
+@login_required
+def edit_product(request, product_id):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
+
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    product = Product.objects.filter(
+        id=product_id,
+        company=current_company
+    ).first()
+
+    if product is None:
+        return redirect("products")
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        description = request.POST.get("description")
+        price = request.POST.get("price")
+        tax = request.POST.get("tax")
+
+        if not name or not price:
+            return render(
+                request,
+                "edit_product.html",
+                {
+                    "product": product,
+                    "current_company": current_company,
+                    "companies": companies,
+                    "error": "Product name and price are required."
+                }
+            )
+
+        product.name = name
+        product.description = description or None
+        product.price = price
+        product.tax = tax or 0
+
+        product.save()
+
+        return redirect("products")
+
+    return render(
+        request,
+        "edit_product.html",
+        {
+            "product": product,
+            "current_company": current_company,
+            "companies": companies,
+        }
+    )

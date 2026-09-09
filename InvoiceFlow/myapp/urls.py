@@ -15,5 +15,6 @@ urlpatterns = [
     path('clients/<int:client_id>/edit/',views.edit_client,name="edit_client"),
     path('clients/<int:client_id>/delete/',views.delete_client,name="delete_client"),
     path('products/', views.products, name="products"),
+    path('products/add/', views.add_product, name="add_product"),
     
 ]
