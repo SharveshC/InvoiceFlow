@@ -1,6 +1,11 @@
+from decimal import Decimal, InvalidOperation
+from datetime import date
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 
 from .models import (
@@ -631,35 +636,57 @@ def create_invoice(request):
         },
     )
 
-
 @login_required
 def payments(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
 
-    companies = [membership.company for membership in memberships]
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
 
-    payments = (
-        Payment.objects.filter(invoice__company=current_company)
-        .select_related("invoice", "invoice__customer")
-        .order_by("-payment_date", "-created_at")
+    payments = Payment.objects.filter(
+        invoice__company=current_company
+    ).select_related(
+        "invoice",
+        "invoice__customer"
+    ).order_by(
+        "-payment_date",
+        "-created_at"
     )
+
+    total_received = payments.aggregate(
+        total=Sum("amount")
+    )["total"] or Decimal("0.00")
+
+    today = date.today()
+
+    this_month = payments.filter(
+        payment_date__year=today.year,
+        payment_date__month=today.month
+    ).aggregate(
+        total=Sum("amount")
+    )["total"] or Decimal("0.00")
 
     return render(
         request,
@@ -668,5 +695,188 @@ def payments(request):
             "payments": payments,
             "current_company": current_company,
             "companies": companies,
-        },
+            "total_received": total_received,
+            "this_month": this_month,
+        }
+    )
+
+
+@login_required
+def record_payment(request):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
+
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    invoices = Invoice.objects.filter(
+        company=current_company
+    ).select_related(
+        "customer"
+    ).order_by("-created_at")
+
+    if request.method == "POST":
+
+        invoice_id = request.POST.get("invoice")
+        amount_text = request.POST.get("amount")
+        payment_method = request.POST.get("payment_method")
+        payment_date = request.POST.get("payment_date")
+        notes = request.POST.get("notes")
+
+        try:
+            amount = Decimal(amount_text)
+        except (InvalidOperation, TypeError):
+            return render(
+                request,
+                "record_payment.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "invoices": invoices,
+                    "error": "Enter a valid payment amount.",
+                }
+            )
+
+        if amount <= 0:
+            return render(
+                request,
+                "record_payment.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "invoices": invoices,
+                    "error": "Payment amount must be greater than zero.",
+                }
+            )
+
+        try:
+            payment_date_value = date.fromisoformat(payment_date)
+        except (ValueError, TypeError):
+            return render(
+                request,
+                "record_payment.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "invoices": invoices,
+                    "error": "Enter a valid payment date.",
+                }
+            )
+
+        with transaction.atomic():
+
+            invoice = Invoice.objects.select_for_update().filter(
+                id=invoice_id,
+                company=current_company
+            ).first()
+
+            if invoice is None:
+                return render(
+                    request,
+                    "record_payment.html",
+                    {
+                        "current_company": current_company,
+                        "companies": companies,
+                        "invoices": invoices,
+                        "error": "Invalid invoice selected.",
+                    }
+                )
+
+            if invoice.status == "CANCELLED":
+                return render(
+                    request,
+                    "record_payment.html",
+                    {
+                        "current_company": current_company,
+                        "companies": companies,
+                        "invoices": invoices,
+                        "error": "Payment cannot be recorded for a cancelled invoice.",
+                    }
+                )
+
+            paid_amount = invoice.payments.aggregate(
+                total=Sum("amount")
+            )["total"] or Decimal("0.00")
+
+            remaining_amount = invoice.total - paid_amount
+
+            if remaining_amount <= 0:
+                return render(
+                    request,
+                    "record_payment.html",
+                    {
+                        "current_company": current_company,
+                        "companies": companies,
+                        "invoices": invoices,
+                        "error": "This invoice has already been fully paid.",
+                    }
+                )
+
+            if amount > remaining_amount:
+                return render(
+                    request,
+                    "record_payment.html",
+                    {
+                        "current_company": current_company,
+                        "companies": companies,
+                        "invoices": invoices,
+                        "error": f"Payment cannot exceed the remaining balance of ₹{remaining_amount}.",
+                    }
+                )
+
+            Payment.objects.create(
+                invoice=invoice,
+                amount=amount,
+                payment_method=payment_method,
+                payment_date=payment_date_value,
+                notes=notes
+            )
+
+            new_paid_amount = paid_amount + amount
+
+            if new_paid_amount >= invoice.total:
+                invoice.status = "PAID"
+            elif invoice.due_date < date.today():
+                invoice.status = "OVERDUE"
+            else:
+                invoice.status = "SENT"
+
+            invoice.save(
+                update_fields=[
+                    "status",
+                    "updated_at"
+                ]
+            )
+
+        return redirect("payments")
+
+    return render(
+        request,
+        "record_payment.html",
+        {
+            "current_company": current_company,
+            "companies": companies,
+            "invoices": invoices,
+        }
     )
