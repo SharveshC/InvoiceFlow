@@ -1,779 +1,715 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>InvoiceFlow</title>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #000;
-            color: #fff;
-            min-height: 100vh;
-        }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #000;
+        color: #fff;
+        min-height: 100vh;
+      }
 
-        /* =========================
+      /* =========================
            SIDEBAR
         ========================= */
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 250px;
-            height: 100vh;
-            background: #050505;
-            border-right: 1px solid #222;
-            padding: 28px 18px;
-        }
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 250px;
+        height: 100vh;
+        background: #050505;
+        border-right: 1px solid #222;
+        padding: 28px 18px;
+      }
 
-        .logo {
-            font-size: 23px;
-            font-weight: 700;
-            letter-spacing: -1px;
-            padding: 0 14px;
-            margin-bottom: 45px;
-        }
+      .logo {
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        padding: 0 14px;
+        margin-bottom: 45px;
+      }
 
-        .logo span {
-            color: #888;
-        }
+      .logo span {
+        color: #888;
+      }
 
-        .menu-title {
-            color: #666;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 0 14px;
-            margin-bottom: 12px;
-        }
+      .menu-title {
+        color: #666;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: 0 14px;
+        margin-bottom: 12px;
+      }
 
-        .nav {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
 
-        .nav a {
-            text-decoration: none;
-            color: #999;
-            padding: 12px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: 0.2s;
-        }
+      .nav a {
+        text-decoration: none;
+        color: #999;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: 0.2s;
+      }
 
-        .nav a:hover,
-        .nav a.active {
-            background: #fff;
-            color: #000;
-        }
+      .nav a:hover,
+      .nav a.active {
+        background: #fff;
+        color: #000;
+      }
 
-        /* =========================
+      /* =========================
            MAIN
         ========================= */
 
-        .main {
-            margin-left: 250px;
-            min-height: 100vh;
-            padding: 35px 45px;
-        }
+      .main {
+        margin-left: 250px;
+        min-height: 100vh;
+        padding: 35px 45px;
+      }
 
-        /* =========================
+      /* =========================
            TOP BAR
         ========================= */
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 45px;
-        }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 45px;
+      }
 
-        .welcome h1 {
-            font-size: 30px;
-            letter-spacing: -1px;
-            margin-bottom: 8px;
-        }
+      .welcome h1 {
+        font-size: 30px;
+        letter-spacing: -1px;
+        margin-bottom: 8px;
+      }
 
-        .welcome p {
-            color: #777;
-            font-size: 14px;
-        }
+      .welcome p {
+        color: #777;
+        font-size: 14px;
+      }
 
-        .profile {
-            width: 42px;
-            height: 42px;
-            border: 1px solid #333;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            background: #111;
-        }
+      .profile {
+        width: 42px;
+        height: 42px;
+        border: 1px solid #333;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        background: #111;
+      }
 
+      .profile-wrap {
+        position: relative;
+      }
 
-        .profile-wrap {
-            position: relative;
-        }
+      .profile {
+        border: 1px solid #333;
+        color: #fff;
+        cursor: pointer;
+        padding: 0;
+      }
 
-        .profile {
-            border: 1px solid #333;
-            color: #fff;
-            cursor: pointer;
-            padding: 0;
-        }
+      .profile:hover {
+        background: #1a1a1a;
+      }
 
-        .profile:hover {
-            background: #1a1a1a;
-        }
+      .profile-menu {
+        position: absolute;
+        top: 52px;
+        right: 0;
+        width: 180px;
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 10px;
+        padding: 7px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      }
 
-        .profile-menu {
-            position: absolute;
-            top: 52px;
-            right: 0;
-            width: 180px;
-            background: #080808;
-            border: 1px solid #222;
-            border-radius: 10px;
-            padding: 7px;
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-        }
+      .profile-menu.show {
+        display: block;
+      }
 
-        .profile-menu.show {
-            display: block;
-        }
+      .profile-menu a,
+      .profile-menu button {
+        width: 100%;
+        display: block;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: #fff;
+        text-decoration: none;
+        text-align: left;
+        font-size: 13px;
+        cursor: pointer;
+      }
 
-        .profile-menu a,
-        .profile-menu button {
-            width: 100%;
-            display: block;
-            padding: 10px 12px;
-            border: none;
-            border-radius: 7px;
-            background: transparent;
-            color: #fff;
-            text-decoration: none;
-            text-align: left;
-            font-size: 13px;
-            cursor: pointer;
-        }
+      .profile-menu a:hover,
+      .profile-menu button:hover {
+        background: #fff;
+        color: #000;
+      }
 
-        .profile-menu a:hover,
-        .profile-menu button:hover {
-            background: #fff;
-            color: #000;
-        }
+      .profile-menu .logout {
+        border-top: 1px solid #222;
+        margin-top: 5px;
+        padding-top: 12px;
+        border-radius: 0 0 7px 7px;
+      }
 
-        .profile-menu .logout {
-            border-top: 1px solid #222;
-            margin-top: 5px;
-            padding-top: 12px;
-            border-radius: 0 0 7px 7px;
-        }
-
-        /* =========================
+      /* =========================
            BUTTON
         ========================= */
 
-        .btn {
-            border: none;
-            background: #fff;
-            color: #000;
-            padding: 12px 18px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+      .btn {
+        border: none;
+        background: #fff;
+        color: #000;
+        padding: 12px 18px;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+      }
 
-        .btn:hover {
-            background: #ccc;
-        }
+      .btn:hover {
+        background: #ccc;
+      }
 
-        /* =========================
+      /* =========================
            AUTH BUTTONS
         ========================= */
 
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
 
-        .sign-in-btn {
-            color: #fff;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 12px 16px;
-            transition: 0.2s;
-        }
+      .sign-in-btn {
+        color: #fff;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 12px 16px;
+        transition: 0.2s;
+      }
 
-        .sign-in-btn:hover {
-            color: #aaa;
-        }
+      .sign-in-btn:hover {
+        color: #aaa;
+      }
 
-        .sign-up-btn {
-            background: #fff;
-            color: #000;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 12px 18px;
-            border-radius: 7px;
-            transition: 0.2s;
-        }
+      .sign-up-btn {
+        background: #fff;
+        color: #000;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 12px 18px;
+        border-radius: 7px;
+        transition: 0.2s;
+      }
 
-        .btn{
-            background: #fff;
-            color: #000;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 12px 18px;
-            border-radius: 7px;
-            transition: 0.2s;
-        }
+      .btn {
+        background: #fff;
+        color: #000;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 12px 18px;
+        border-radius: 7px;
+        transition: 0.2s;
+      }
 
+      .sign-up-btn:hover {
+        background: #ccc;
+      }
 
-        .sign-up-btn:hover {
-            background: #ccc;
-        }
-
-        /* =========================
+      /* =========================
            STATS
         ========================= */
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 35px;
-        }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 35px;
+      }
 
-        .stat-card {
-            background: #080808;
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 22px;
-        }
+      .stat-card {
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 12px;
+        padding: 22px;
+      }
 
-        .stat-card .label {
-            color: #777;
-            font-size: 12px;
-            margin-bottom: 15px;
-        }
+      .stat-card .label {
+        color: #777;
+        font-size: 12px;
+        margin-bottom: 15px;
+      }
 
-        .stat-card h2 {
-            font-size: 26px;
-            margin-bottom: 8px;
-        }
+      .stat-card h2 {
+        font-size: 26px;
+        margin-bottom: 8px;
+      }
 
-        .stat-card .change {
-            font-size: 11px;
-            color: #aaa;
-        }
+      .stat-card .change {
+        font-size: 11px;
+        color: #aaa;
+      }
 
-        /* =========================
+      /* =========================
            CONTENT GRID
         ========================= */
 
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
+      .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+      }
 
-        .panel {
-            background: #080808;
-            border: 1px solid #222;
-            border-radius: 12px;
-            overflow: hidden;
-        }
+      .panel {
+        background: #080808;
+        border: 1px solid #222;
+        border-radius: 12px;
+        overflow: hidden;
+      }
 
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 22px;
-            border-bottom: 1px solid #222;
-        }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 22px;
+        border-bottom: 1px solid #222;
+      }
 
-        .panel-header h3 {
-            font-size: 15px;
-        }
+      .panel-header h3 {
+        font-size: 15px;
+      }
 
-        .view-all {
-            color: #777;
-            text-decoration: none;
-            font-size: 12px;
-        }
+      .view-all {
+        color: #777;
+        text-decoration: none;
+        font-size: 12px;
+      }
 
-        .view-all:hover {
-            color: #fff;
-        }
+      .view-all:hover {
+        color: #fff;
+      }
 
-        /* =========================
+      /* =========================
            INVOICE TABLE
         ========================= */
 
-        .invoice-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+      .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
 
-        .invoice-table th {
-            text-align: left;
-            padding: 15px 22px;
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 500;
-        }
+      .invoice-table th {
+        text-align: left;
+        padding: 15px 22px;
+        font-size: 10px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 500;
+      }
 
-        .invoice-table td {
-            padding: 17px 22px;
-            border-top: 1px solid #181818;
-            font-size: 13px;
-        }
+      .invoice-table td {
+        padding: 17px 22px;
+        border-top: 1px solid #181818;
+        font-size: 13px;
+      }
 
-        .invoice-table tr:hover {
-            background: #0d0d0d;
-        }
+      .invoice-table tr:hover {
+        background: #0d0d0d;
+      }
 
-        .invoice-number {
-            color: #fff;
-            font-weight: 600;
-        }
+      .invoice-number {
+        color: #fff;
+        font-weight: 600;
+      }
 
-        .client {
-            color: #aaa;
-        }
+      .client {
+        color: #aaa;
+      }
 
-        .amount {
-            font-weight: 600;
-        }
+      .amount {
+        font-weight: 600;
+      }
 
-        /* =========================
+      /* =========================
            STATUS
         ========================= */
 
-        .status {
-            display: inline-block;
-            padding: 5px 9px;
-            border-radius: 20px;
-            font-size: 10px;
-            border: 1px solid #333;
-        }
+      .status {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 10px;
+        border: 1px solid #333;
+      }
 
-        .paid {
-            color: #fff;
-            background: #151515;
-        }
+      .paid {
+        color: #fff;
+        background: #151515;
+      }
 
-        .pending {
-            color: #aaa;
-            background: #0d0d0d;
-        }
+      .pending {
+        color: #aaa;
+        background: #0d0d0d;
+      }
 
-        .overdue {
-            color: #fff;
-            background: #222;
-        }
+      .overdue {
+        color: #fff;
+        background: #222;
+      }
 
-        /* =========================
+      /* =========================
            QUICK ACTIONS
         ========================= */
 
-        .actions {
-            padding: 20px;
-            display: grid;
-            gap: 10px;
-        }
+      .actions {
+        padding: 20px;
+        display: grid;
+        gap: 10px;
+      }
 
-        .action {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 16px;
-            border: 1px solid #222;
-            border-radius: 9px;
-            text-decoration: none;
-            color: #fff;
-            transition: 0.2s;
-        }
+      .action {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        border: 1px solid #222;
+        border-radius: 9px;
+        text-decoration: none;
+        color: #fff;
+        transition: 0.2s;
+      }
 
-        .action:hover {
-            background: #fff;
-            color: #000;
-        }
+      .action:hover {
+        background: #fff;
+        color: #000;
+      }
 
-        .action-icon {
-            width: 34px;
-            height: 34px;
-            border: 1px solid #333;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-        }
+      .action-icon {
+        width: 34px;
+        height: 34px;
+        border: 1px solid #333;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+      }
 
-        .action-text strong {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
+      .action-text strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
 
-        .action-text span {
-            font-size: 11px;
-            color: #777;
-        }
+      .action-text span {
+        font-size: 11px;
+        color: #777;
+      }
 
-        .action:hover .action-text span {
-            color: #555;
-        }
+      .action:hover .action-text span {
+        color: #555;
+      }
 
-        /* =========================
+      /* =========================
            RESPONSIVE
         ========================= */
 
-        @media (max-width: 1000px) {
-
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
+      @media (max-width: 1000px) {
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
         }
 
-        @media (max-width: 700px) {
-
-            .sidebar {
-                width: 70px;
-                padding: 25px 10px;
-            }
-
-            .logo {
-                font-size: 0;
-                text-align: center;
-            }
-
-            .logo::after {
-                content: "IF";
-                font-size: 18px;
-            }
-
-            .menu-title {
-                display: none;
-            }
-
-            .nav a {
-                font-size: 0;
-                text-align: center;
-            }
-
-            .nav a::first-letter {
-                font-size: 16px;
-            }
-
-            .main {
-                margin-left: 70px;
-                padding: 25px 20px;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .topbar {
-                align-items: flex-start;
-                gap: 20px;
-            }
-
-            .invoice-table {
-                min-width: 650px;
-            }
-
-            .panel {
-                overflow-x: auto;
-            }
+        .content-grid {
+          grid-template-columns: 1fr;
         }
+      }
+
+      @media (max-width: 700px) {
+        .sidebar {
+          width: 70px;
+          padding: 25px 10px;
+        }
+
+        .logo {
+          font-size: 0;
+          text-align: center;
+        }
+
+        .logo::after {
+          content: "IF";
+          font-size: 18px;
+        }
+
+        .menu-title {
+          display: none;
+        }
+
+        .nav a {
+          font-size: 0;
+          text-align: center;
+        }
+
+        .nav a::first-letter {
+          font-size: 16px;
+        }
+
+        .main {
+          margin-left: 70px;
+          padding: 25px 20px;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          gap: 20px;
+        }
+
+        .invoice-table {
+          min-width: 650px;
+        }
+
+        .panel {
+          overflow-x: auto;
+        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <!-- SIDEBAR -->
 
     <aside class="sidebar">
+      <div class="logo">Invoice<span>Flow</span></div>
 
-        <div class="logo">
-            Invoice<span>Flow</span>
-        </div>
+      <div class="menu-title">Menu</div>
 
-        <div class="menu-title">
-            Menu
-        </div>
+      <nav class="nav">
+        <a href="#" class="active">⌂ &nbsp; Dashboard</a>
+        <a href="#">▣ &nbsp; Invoices</a>
+        <a href="#">＋ &nbsp; Create Invoice</a>
+        <a href="#">◉ &nbsp; Clients</a>
+        <a href="#">▤ &nbsp; Payments</a>
+      </nav>
 
-        <nav class="nav">
-            <a href="#" class="active">⌂ &nbsp; Dashboard</a>
-            <a href="#">▣ &nbsp; Invoices</a>
-            <a href="#">＋ &nbsp; Create Invoice</a>
-            <a href="#">◉ &nbsp; Clients</a>
-            <a href="#">▤ &nbsp; Payments</a>
-        </nav>
+      <div class="menu-title" style="margin-top: 35px">Settings</div>
 
-        <div class="menu-title" style="margin-top:35px;">
-            Settings
-        </div>
-
-        <nav class="nav">
-            <a href="#">⚙ &nbsp; Settings</a>
-            <a href="#">? &nbsp; Help</a>
-        </nav>
-
+      <nav class="nav">
+        <a href="#">⚙ &nbsp; Settings</a>
+        <a href="#">? &nbsp; Help</a>
+      </nav>
     </aside>
-
 
     <!-- MAIN CONTENT -->
 
     <main class="main">
+      <!-- TOP BAR -->
 
-        <!-- TOP BAR -->
-
-        <div class="topbar">
-
-            <div class="welcome">
-                <h1>Dashboard</h1>
-                <p>Manage your invoices and payments.</p>
-            </div>
-
-            <div class="topbar-actions">
-
-    <a href="{% url 'login' %}" class="btn">
-         New Invoice
-    </a>
-
-    <a href="{% url 'login' %}" class="sign-in-btn">
-        Sign In
-    </a>
-
-    <a href="{% url 'signup' %}" class="sign-up-btn">
-        Sign Up For Free
-    </a>
-
-</div>
-
+      <div class="topbar">
+        <div class="welcome">
+          <h1>Dashboard</h1>
+          <p>Manage your invoices and payments.</p>
         </div>
 
+        <div class="topbar-actions">
+          <a href="{% url 'login' %}" class="btn"> New Invoice </a>
 
-        <!-- STATISTICS -->
+          <a href="{% url 'login' %}" class="sign-in-btn"> Sign In </a>
 
-        <section class="stats">
+          <a href="{% url 'signup' %}" class="sign-up-btn">
+            Sign Up For Free
+          </a>
+        </div>
+      </div>
 
-            <div class="stat-card">
-                <div class="label">TOTAL REVENUE</div>
-                <h2>₹2,84,500</h2>
-                <div class="change">↑ 12.5% this month</div>
-            </div>
+      <!-- STATISTICS -->
 
-            <div class="stat-card">
-                <div class="label">PAID INVOICES</div>
-                <h2>42</h2>
-                <div class="change">↑ 8 this month</div>
-            </div>
+      <section class="stats">
+        <div class="stat-card">
+          <div class="label">TOTAL REVENUE</div>
+          <h2>₹2,84,500</h2>
+          <div class="change">↑ 12.5% this month</div>
+        </div>
 
-            <div class="stat-card">
-                <div class="label">PENDING</div>
-                <h2>₹64,200</h2>
-                <div class="change">12 invoices</div>
-            </div>
+        <div class="stat-card">
+          <div class="label">PAID INVOICES</div>
+          <h2>42</h2>
+          <div class="change">↑ 8 this month</div>
+        </div>
 
-            <div class="stat-card">
-                <div class="label">OVERDUE</div>
-                <h2>₹18,750</h2>
-                <div class="change">5 invoices</div>
-            </div>
+        <div class="stat-card">
+          <div class="label">PENDING</div>
+          <h2>₹64,200</h2>
+          <div class="change">12 invoices</div>
+        </div>
 
-        </section>
+        <div class="stat-card">
+          <div class="label">OVERDUE</div>
+          <h2>₹18,750</h2>
+          <div class="change">5 invoices</div>
+        </div>
+      </section>
 
+      <!-- CONTENT -->
 
-        <!-- CONTENT -->
+      <section class="content-grid">
+        <!-- RECENT INVOICES -->
 
-        <section class="content-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Recent Invoices</h3>
+            <a href="#" class="view-all">View all →</a>
+          </div>
 
-            <!-- RECENT INVOICES -->
+          <table class="invoice-table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
 
-            <div class="panel">
+            <tbody>
+              <tr>
+                <td class="invoice-number">#INV-1024</td>
+                <td class="client">Acme Corporation</td>
+                <td>08 Sep 2026</td>
+                <td class="amount">₹45,000</td>
+                <td>
+                  <span class="status paid">Paid</span>
+                </td>
+              </tr>
 
-                <div class="panel-header">
-                    <h3>Recent Invoices</h3>
-                    <a href="#" class="view-all">View all →</a>
-                </div>
+              <tr>
+                <td class="invoice-number">#INV-1023</td>
+                <td class="client">TechNova Pvt Ltd</td>
+                <td>06 Sep 2026</td>
+                <td class="amount">₹28,500</td>
+                <td>
+                  <span class="status pending">Pending</span>
+                </td>
+              </tr>
 
-                <table class="invoice-table">
+              <tr>
+                <td class="invoice-number">#INV-1022</td>
+                <td class="client">Pixel Studios</td>
+                <td>04 Sep 2026</td>
+                <td class="amount">₹18,200</td>
+                <td>
+                  <span class="status paid">Paid</span>
+                </td>
+              </tr>
 
-                    <thead>
-                        <tr>
-                            <th>Invoice</th>
-                            <th>Client</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
+              <tr>
+                <td class="invoice-number">#INV-1021</td>
+                <td class="client">Bright Solutions</td>
+                <td>02 Sep 2026</td>
+                <td class="amount">₹12,750</td>
+                <td>
+                  <span class="status overdue">Overdue</span>
+                </td>
+              </tr>
 
-                    <tbody>
+              <tr>
+                <td class="invoice-number">#INV-1020</td>
+                <td class="client">Orbit Systems</td>
+                <td>31 Aug 2026</td>
+                <td class="amount">₹36,000</td>
+                <td>
+                  <span class="status paid">Paid</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-                        <tr>
-                            <td class="invoice-number">#INV-1024</td>
-                            <td class="client">Acme Corporation</td>
-                            <td>08 Sep 2026</td>
-                            <td class="amount">₹45,000</td>
-                            <td>
-                                <span class="status paid">Paid</span>
-                            </td>
-                        </tr>
+        <!-- QUICK ACTIONS -->
 
-                        <tr>
-                            <td class="invoice-number">#INV-1023</td>
-                            <td class="client">TechNova Pvt Ltd</td>
-                            <td>06 Sep 2026</td>
-                            <td class="amount">₹28,500</td>
-                            <td>
-                                <span class="status pending">Pending</span>
-                            </td>
-                        </tr>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Quick Actions</h3>
+          </div>
 
-                        <tr>
-                            <td class="invoice-number">#INV-1022</td>
-                            <td class="client">Pixel Studios</td>
-                            <td>04 Sep 2026</td>
-                            <td class="amount">₹18,200</td>
-                            <td>
-                                <span class="status paid">Paid</span>
-                            </td>
-                        </tr>
+          <div class="actions">
+            <a href="#" class="action">
+              <div class="action-icon">+</div>
 
-                        <tr>
-                            <td class="invoice-number">#INV-1021</td>
-                            <td class="client">Bright Solutions</td>
-                            <td>02 Sep 2026</td>
-                            <td class="amount">₹12,750</td>
-                            <td>
-                                <span class="status overdue">Overdue</span>
-                            </td>
-                        </tr>
+              <div class="action-text">
+                <strong>Create Invoice</strong>
+                <span>Send a new invoice</span>
+              </div>
+            </a>
 
-                        <tr>
-                            <td class="invoice-number">#INV-1020</td>
-                            <td class="client">Orbit Systems</td>
-                            <td>31 Aug 2026</td>
-                            <td class="amount">₹36,000</td>
-                            <td>
-                                <span class="status paid">Paid</span>
-                            </td>
-                        </tr>
+            <a href="#" class="action">
+              <div class="action-icon">+</div>
 
-                    </tbody>
+              <div class="action-text">
+                <strong>Add Client</strong>
+                <span>Create a new client</span>
+              </div>
+            </a>
 
-                </table>
+            <a href="#" class="action">
+              <div class="action-icon">↓</div>
 
-            </div>
+              <div class="action-text">
+                <strong>Export Reports</strong>
+                <span>Download financial data</span>
+              </div>
+            </a>
 
+            <a href="#" class="action">
+              <div class="action-icon">⚙</div>
 
-            <!-- QUICK ACTIONS -->
-
-            <div class="panel">
-
-                <div class="panel-header">
-                    <h3>Quick Actions</h3>
-                </div>
-
-                <div class="actions">
-
-                    <a href="#" class="action">
-
-                        <div class="action-icon">
-                            +
-                        </div>
-
-                        <div class="action-text">
-                            <strong>Create Invoice</strong>
-                            <span>Send a new invoice</span>
-                        </div>
-
-                    </a>
-
-
-                    <a href="#" class="action">
-
-                        <div class="action-icon">
-                            +
-                        </div>
-
-                        <div class="action-text">
-                            <strong>Add Client</strong>
-                            <span>Create a new client</span>
-                        </div>
-
-                    </a>
-
-
-                    <a href="#" class="action">
-
-                        <div class="action-icon">
-                            ↓
-                        </div>
-
-                        <div class="action-text">
-                            <strong>Export Reports</strong>
-                            <span>Download financial data</span>
-                        </div>
-
-                    </a>
-
-
-                    <a href="#" class="action">
-
-                        <div class="action-icon">
-                            ⚙
-                        </div>
-
-                        <div class="action-text">
-                            <strong>Settings</strong>
-                            <span>Manage your account</span>
-                        </div>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </section>
-
+              <div class="action-text">
+                <strong>Settings</strong>
+                <span>Manage your account</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
-
-
-
-
-</body>
+  </body>
 </html>
