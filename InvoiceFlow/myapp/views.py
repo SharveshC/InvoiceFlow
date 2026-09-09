@@ -3,7 +3,15 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from .models import Company, Membership, Customer, Product, Invoice, InvoiceItem
+from .models import (
+    Company,
+    Membership,
+    Customer,
+    Product,
+    Invoice,
+    InvoiceItem,
+    Payment,
+)
 
 
 def home(request):
@@ -620,5 +628,45 @@ def create_invoice(request):
             "companies": companies,
             "customers": customers,
             "products": products,
+        },
+    )
+
+
+@login_required
+def payments(request):
+
+    current_company_id = request.session.get("current_company_id")
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
+
+    companies = [membership.company for membership in memberships]
+
+    payments = (
+        Payment.objects.filter(invoice__company=current_company)
+        .select_related("invoice", "invoice__customer")
+        .order_by("-payment_date", "-created_at")
+    )
+
+    return render(
+        request,
+        "payments.html",
+        {
+            "payments": payments,
+            "current_company": current_company,
+            "companies": companies,
         },
     )

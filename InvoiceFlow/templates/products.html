@@ -514,15 +514,15 @@
       <nav class="nav">
         <a href="{% url 'dashboard' %}"> ⌂ &nbsp; Dashboard </a>
 
-        <a href="#"> ▣ &nbsp; Invoices </a>
+        <a href="{% url 'invoices' %}"> ▣ &nbsp; Invoices </a>
 
-        <a href="#"> ＋ &nbsp; Create Invoice </a>
+        <a href="{% url 'create_invoice' %}"> ＋ &nbsp; Create Invoice </a>
 
         <a href="{% url 'clients' %}"> ◉ &nbsp; Clients </a>
 
         <a href="{% url 'products' %}" class="active"> ▤ &nbsp; Products </a>
 
-        <a href="#"> ▤ &nbsp; Payments </a>
+        <a href="{% url 'payments' %}"> ▤ &nbsp; Payments </a>
       </nav>
 
       <div class="menu-title" style="margin-top: 35px">Settings</div>
