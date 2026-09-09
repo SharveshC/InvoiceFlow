@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Company - InvoiceFlow</title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+
+        /* =========================
+           CONTAINER
+        ========================= */
+
+        .container {
+            width: 100%;
+            max-width: 620px;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+
+        .logo {
+            font-size: 25px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 30px;
+        }
+
+
+        .logo span {
+            color: #888;
+        }
+
+
+        .header h1 {
+            font-size: 30px;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+
+
+        .header p {
+            color: #777;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+
+        /* =========================
+           FORM CARD
+        ========================= */
+
+        .card {
+            background: #080808;
+            border: 1px solid #222;
+            border-radius: 14px;
+            padding: 32px;
+        }
+
+
+        /* =========================
+           FORM GROUP
+        ========================= */
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+
+        .required {
+            color: #fff;
+        }
+
+
+        .optional {
+            color: #666;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: #050505;
+            color: #fff;
+
+            border: 1px solid #292929;
+            border-radius: 8px;
+
+            padding: 13px 14px;
+
+            font-size: 13px;
+            font-family: inherit;
+
+            outline: none;
+
+            transition: 0.2s;
+        }
+
+
+        .form-group input {
+            height: 46px;
+        }
+
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #777;
+            background: #080808;
+        }
+
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #444;
+        }
+
+
+        /* =========================
+           TWO COLUMN
+        ========================= */
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+
+        /* =========================
+           ERROR
+        ========================= */
+
+        .error-message {
+            background: #120808;
+            border: 1px solid #3a2020;
+            color: #d8aaaa;
+
+            border-radius: 8px;
+
+            padding: 12px 14px;
+
+            font-size: 12px;
+
+            margin-bottom: 20px;
+        }
+
+
+        /* =========================
+           BUTTONS
+        ========================= */
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+
+        .btn {
+            flex: 1;
+
+            height: 46px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            text-decoration: none;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            transition: 0.2s;
+        }
+
+
+        .btn-primary {
+            border: none;
+            background: #fff;
+            color: #000;
+        }
+
+
+        .btn-primary:hover {
+            background: #ccc;
+        }
+
+
+        .btn-secondary {
+            border: 1px solid #333;
+            background: #0b0b0b;
+            color: #aaa;
+        }
+
+
+        .btn-secondary:hover {
+            background: #151515;
+            color: #fff;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+            text-align: center;
+            margin-top: 22px;
+        }
+
+
+        .footer p {
+            color: #555;
+            font-size: 11px;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 20px;
+                align-items: flex-start;
+            }
+
+
+            .container {
+                margin-top: 20px;
+            }
+
+
+            .card {
+                padding: 22px;
+            }
+
+
+            .header h1 {
+                font-size: 25px;
+            }
+
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="container">
+
+
+        <!-- =========================
+             HEADER
+        ========================= -->
+
+        <div class="header">
+
+
+            <div class="logo">
+                Invoice<span>Flow</span>
+            </div>
+
+
+            <h1>
+                Create Your Company
+            </h1>
+
+
+            <p>
+                Set up your company to start managing customers,
+                invoices and payments.
+            </p>
+
+
+        </div>
+
+
+
+        <!-- =========================
+             FORM CARD
+        ========================= -->
+
+        <div class="card">
+
+
+            {% if error %}
+
+                <div class="error-message">
+                    {{ error }}
+                </div>
+
+            {% endif %}
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+
+                <!-- COMPANY NAME -->
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Company Name
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        placeholder="Enter your company name"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- EMAIL + PHONE -->
+
+                <div class="form-row">
+
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            Company Email
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="company@example.com"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <div class="form-group">
+
+                        <label for="phone">
+                            Phone
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            placeholder="+91 9876543210"
+                            required
+                        >
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- ADDRESS -->
+
+                <div class="form-group">
+
+                    <label for="address">
+                        Address
+                        <span class="required">*</span>
+                    </label>
+
+                    <textarea
+                        id="address"
+                        name="address"
+                        placeholder="Enter your company address"
+                        required
+                    ></textarea>
+
+                </div>
+
+
+
+                <!-- GST -->
+
+                <div class="form-group">
+
+                    <label for="gst_number">
+
+                        GST Number
+
+                        <span class="optional">
+                            Optional
+                        </span>
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="gst_number"
+                        name="gst_number"
+                        placeholder="Enter GST number"
+                        maxlength="15"
+                    >
+
+                </div>
+
+
+
+                <!-- ACTIONS -->
+
+                <div class="form-actions">
+
+
+                    <a
+                        href="{% url 'dashboard' %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Create Company
+                    </button>
+
+
+                </div>
+
+
+            </form>
+
+
+        </div>
+
+
+
+        <!-- =========================
+             FOOTER
+        ========================= -->
+
+        <div class="footer">
+
+            <p>
+                Your company information will be securely stored in InvoiceFlow.
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>

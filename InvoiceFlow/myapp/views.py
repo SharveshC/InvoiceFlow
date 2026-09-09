@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from .models import Company, Membership
 
 
 # HOME
@@ -77,7 +78,46 @@ def signup(request):
 # DASHBOARD
 @login_required
 def dashboard(request):
-    return render(request, 'after_login.html')
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related('company')
+
+    companies = [membership.company for membership in memberships]
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    current_company = None
+
+    # Try to get previously selected company
+    if current_company_id:
+
+        current_company = next(
+            (
+                company
+                for company in companies
+                if company.id == current_company_id
+            ),
+            None
+        )
+
+    # If no company is selected, use the first company
+    if current_company is None and companies:
+
+        current_company = companies[0]
+
+        request.session["current_company_id"] = current_company.id
+
+    return render(
+        request,
+        'after_login.html',
+        {
+            "companies": companies,
+            "current_company": current_company,
+        }
+    )
 
 
 # LOGOUT
@@ -87,3 +127,46 @@ def logout_view(request):
         return redirect("login")
 
     return redirect("home")
+
+
+# CREATE COMPANY
+@login_required
+def create_company(request):
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        address = request.POST.get("address")
+        gst_number = request.POST.get("gst_number")
+
+        # Basic validation
+        if not name or not email or not phone or not address:
+            return render(request, "create_company.html", {
+                "error": "Please fill in all required fields."
+            })
+
+        # Create company
+        company = Company.objects.create(
+            name=name,
+            email=email,
+            phone=phone,
+            address=address,
+            gst_number=gst_number or None
+        )
+
+        # Create membership
+        Membership.objects.create(
+            user=request.user,
+            company=company,
+            role="OWNER"
+        )
+
+        # Make newly created company the current company
+        request.session["current_company_id"] = company.id
+
+        # Go back to dashboard
+        return redirect("dashboard")
+
+    return render(request, "create_company.html")
