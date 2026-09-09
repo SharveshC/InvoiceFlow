@@ -625,6 +625,230 @@ def create_invoice(request):
 
     products = Product.objects.filter(company=current_company).order_by("name")
 
+    if request.method == "POST":
+
+        invoice_number = request.POST.get("invoice_number", "").strip()
+        customer_id = request.POST.get("customer")
+        issue_date = request.POST.get("issue_date")
+        due_date = request.POST.get("due_date")
+        discount_value = request.POST.get("discount", "0")
+        notes = request.POST.get("notes", "").strip()
+
+        if not invoice_number:
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Invoice number is required.",
+                },
+            )
+
+        if not customer_id:
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Please select a customer.",
+                },
+            )
+
+        try:
+            customer = Customer.objects.get(id=customer_id, company=current_company)
+        except Customer.DoesNotExist:
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Invalid customer.",
+                },
+            )
+
+        try:
+            discount = Decimal(discount_value or "0")
+
+            if discount < 0:
+                raise InvalidOperation
+
+        except (InvalidOperation, ValueError):
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Invalid discount amount.",
+                },
+            )
+
+        product_ids = request.POST.getlist("product[]")
+        quantities = request.POST.getlist("quantity[]")
+        unit_prices = request.POST.getlist("unit_price[]")
+        taxes = request.POST.getlist("tax[]")
+
+        if not product_ids:
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Please add at least one invoice item.",
+                },
+            )
+
+        if not (len(product_ids) == len(quantities) == len(unit_prices) == len(taxes)):
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Invalid invoice items.",
+                },
+            )
+
+        try:
+
+            subtotal = Decimal("0.00")
+            total_tax = Decimal("0.00")
+
+            invoice_items = []
+
+            for i in range(len(product_ids)):
+
+                product_id = product_ids[i]
+
+                product = Product.objects.get(id=product_id, company=current_company)
+
+                quantity = Decimal(quantities[i])
+                unit_price = Decimal(unit_prices[i])
+                tax_percent = Decimal(taxes[i])
+
+                if quantity <= 0:
+                    raise ValueError("Quantity must be greater than zero.")
+
+                if unit_price < 0:
+                    raise ValueError("Unit price cannot be negative.")
+
+                if tax_percent < 0:
+                    raise ValueError("Tax cannot be negative.")
+
+                line_subtotal = quantity * unit_price
+                line_tax = (line_subtotal * tax_percent) / Decimal("100")
+                line_total = line_subtotal + line_tax
+
+                subtotal += line_subtotal
+                total_tax += line_tax
+
+                invoice_items.append(
+                    {
+                        "product": product,
+                        "quantity": quantity,
+                        "unit_price": unit_price,
+                        "tax": tax_percent,
+                        "line_total": line_total,
+                    }
+                )
+
+            total = subtotal + total_tax - discount
+
+            if total < 0:
+                total = Decimal("0.00")
+
+        except Product.DoesNotExist:
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Invalid product selected.",
+                },
+            )
+
+        except (InvalidOperation, ValueError, ArithmeticError):
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Please enter valid invoice item values.",
+                },
+            )
+
+        try:
+
+            with transaction.atomic():
+
+                invoice = Invoice.objects.create(
+                    company=current_company,
+                    customer=customer,
+                    invoice_number=invoice_number,
+                    issue_date=issue_date,
+                    due_date=due_date,
+                    status="SENT",
+                    subtotal=subtotal,
+                    tax_amount=total_tax,
+                    discount_amount=discount,
+                    total=total,
+                    notes=notes,
+                )
+
+                for item in invoice_items:
+
+                    InvoiceItem.objects.create(
+                        invoice=invoice,
+                        product=item["product"],
+                        quantity=item["quantity"],
+                        unit_price=item["unit_price"],
+                        tax=item["tax"],
+                        line_total=item["line_total"],
+                    )
+
+        except Exception as e:
+
+            if "unique" in str(e).lower():
+                error = "Invoice number already exists for this company."
+            else:
+                error = f"Could not create invoice: {str(e)}"
+
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": error,
+                },
+            )
+
+        return redirect("invoices")
+
     return render(
         request,
         "create_invoice.html",
