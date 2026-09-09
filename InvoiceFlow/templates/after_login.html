@@ -682,23 +682,25 @@
 
           <div class="company-menu" id="companyMenu">
             {% for company in companies %}
-
             <a
-              href="#"
+              href="{% url 'switch_company' company.id %}"
               class="{% if current_company.id == company.id %}current{% endif %}"
             >
               {{ company.name }}
             </a>
-
             {% endfor %}
 
-            <a href="{% url 'create_company' %}" class="create-company"> ＋ Create Company </a>
+            <a href="{% url 'create_company' %}" class="create-company">
+              ＋ Create Company
+            </a>
           </div>
         </div>
 
         {% else %}
 
-        <a href="{% url 'create_company' %}" class="create-company-btn"> ＋ &nbsp; Create Company </a>
+        <a href="{% url 'create_company' %}" class="create-company-btn">
+          ＋ &nbsp; Create Company
+        </a>
 
         {% endif %}
       </div>

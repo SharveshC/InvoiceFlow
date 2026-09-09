@@ -170,3 +170,20 @@ def create_company(request):
         return redirect("dashboard")
 
     return render(request, "create_company.html")
+
+
+# SWITCH COMPANY
+@login_required
+def switch_company(request, company_id):
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=company_id
+    ).first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    request.session["current_company_id"] = company_id
+
+    return redirect("dashboard")
