@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Record Payment - InvoiceFlow</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #000;
+        color: #fff;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 278px;
+        height: 100vh;
+        background: #050505;
+        border-right: 1px solid #222;
+        padding: 35px 20px;
+      }
+
+      .logo {
+        font-size: 25px;
+        font-weight: 700;
+        margin: 0 16px 45px;
+      }
+
+      .logo span {
+        color: #777;
+      }
+
+      .section-title {
+        color: #666;
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        margin: 0 16px 14px;
+      }
+
+      .company-box {
+        border: 1px solid #292929;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 35px;
+      }
+
+      .company-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #fff;
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 12px;
+      }
+
+      .company-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .company-name {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .company-status {
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+      }
+
+      .company-arrow {
+        color: #777;
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .nav-item {
+        text-decoration: none;
+        color: #aaa;
+        padding: 14px 16px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 15px;
+      }
+
+      .nav-item:hover {
+        background: #111;
+        color: #fff;
+      }
+
+      .nav-item.active {
+        background: #fff;
+        color: #000;
+      }
+
+      .nav-icon {
+        width: 20px;
+        text-align: center;
+      }
+
+      .other {
+        margin-top: 35px;
+      }
+
+      .main {
+        margin-left: 278px;
+        min-height: 100vh;
+      }
+
+      .topbar {
+        height: 84px;
+        border-bottom: 1px solid #222;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+      }
+
+      .topbar-title {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .topbar-subtitle {
+        color: #666;
+        font-size: 13px;
+        margin-top: 5px;
+      }
+
+      .profile {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      .content {
+        padding: 42px 40px;
+        max-width: 1100px;
+      }
+
+      .page-heading {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .page-description {
+        color: #777;
+        margin-bottom: 35px;
+      }
+
+      .form-card {
+        background: #070707;
+        border: 1px solid #252525;
+        border-radius: 14px;
+        padding: 32px;
+      }
+
+      .form-section {
+        margin-bottom: 30px;
+      }
+
+      .section-heading {
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group.full {
+        grid-column: span 2;
+      }
+
+      label {
+        font-size: 13px;
+        color: #aaa;
+        margin-bottom: 9px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        background: #0b0b0b;
+        border: 1px solid #303030;
+        border-radius: 8px;
+        color: #fff;
+        padding: 13px 14px;
+        font-size: 14px;
+        outline: none;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: #777;
+      }
+
+      select {
+        cursor: pointer;
+      }
+
+      select option {
+        background: #111;
+        color: #fff;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .invoice-summary {
+        background: #0b0b0b;
+        border: 1px solid #252525;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 9px 0;
+        color: #999;
+        font-size: 14px;
+      }
+
+      .summary-row strong {
+        color: #fff;
+      }
+
+      .remaining {
+        border-top: 1px solid #292929;
+        margin-top: 8px;
+        padding-top: 15px;
+        font-size: 16px;
+      }
+
+      .remaining strong {
+        font-size: 18px;
+      }
+
+      .error {
+        background: #1b0808;
+        border: 1px solid #542020;
+        color: #ff8585;
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        font-size: 14px;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        border-top: 1px solid #252525;
+        padding-top: 25px;
+      }
+
+      .cancel-btn,
+      .submit-btn {
+        padding: 13px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .cancel-btn {
+        color: #aaa;
+        border: 1px solid #333;
+        background: transparent;
+      }
+
+      .cancel-btn:hover {
+        background: #111;
+        color: #fff;
+      }
+
+      .submit-btn {
+        border: none;
+        background: #fff;
+        color: #000;
+        font-weight: 600;
+      }
+
+      .submit-btn:hover {
+        background: #ddd;
+      }
+
+      @media (max-width: 800px) {
+        .sidebar {
+          display: none;
+        }
+
+        .main {
+          margin-left: 0;
+        }
+
+        .content {
+          padding: 30px 20px;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .form-group.full {
+          grid-column: span 1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <aside class="sidebar">
+      <div class="logo">Invoice<span>Flow</span></div>
+
+      <div class="section-title">COMPANY</div>
+
+      <div class="company-box">
+        <div class="company-icon">{{ current_company.name|first|upper }}</div>
+
+        <div class="company-info">
+          <div class="company-name">{{ current_company.name }}</div>
+
+          <div class="company-status">Current company</div>
+        </div>
+
+        <div class="company-arrow">▼</div>
+      </div>
+
+      <div class="section-title">MENU</div>
+
+      <nav class="nav">
+        <a href="{% url 'dashboard' %}" class="nav-item">
+          <span class="nav-icon">⌂</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="{% url 'invoices' %}" class="nav-item">
+          <span class="nav-icon">▤</span>
+          <span>Invoices</span>
+        </a>
+
+        <a href="{% url 'create_invoice' %}" class="nav-item">
+          <span class="nav-icon">＋</span>
+          <span>Create Invoice</span>
+        </a>
+
+        <a href="{% url 'clients' %}" class="nav-item">
+          <span class="nav-icon">♙</span>
+          <span>Clients</span>
+        </a>
+
+        <a href="{% url 'products' %}" class="nav-item">
+          <span class="nav-icon">▤</span>
+          <span>Products</span>
+        </a>
+
+        <a href="{% url 'payments' %}" class="nav-item active">
+          <span class="nav-icon">₹</span>
+          <span>Payments</span>
+        </a>
+      </nav>
+
+      <div class="other">
+        <div class="section-title">OTHER</div>
+
+        <nav class="nav">
+          <a href="#" class="nav-item">
+            <span class="nav-icon">⚙</span>
+            <span>Settings</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">?</span>
+            <span>Help</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="topbar-title">Payments</div>
+
+          <div class="topbar-subtitle">Record a customer payment</div>
+        </div>
+
+        <div class="profile">{{ request.user.first_name|first|upper }}</div>
+      </header>
+
+      <section class="content">
+        <h1 class="page-heading">Record Payment</h1>
+
+        <p class="page-description">
+          Record a payment received from your customer.
+        </p>
+
+        {% if error %}
+
+        <div class="error">{{ error }}</div>
+
+        {% endif %}
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <div class="form-card">
+            <div class="form-section">
+              <div class="section-heading">Payment Details</div>
+
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label for="invoice"> Invoice </label>
+
+                  <select name="invoice" id="invoice" required>
+                    <option value="">Select an invoice</option>
+
+                    {% for invoice in invoices %}
+
+                    <option
+                      value="{{ invoice.id }}"
+                      data-total="{{ invoice.total }}"
+                      data-customer="{{ invoice.customer.name }}"
+                      data-status="{{ invoice.status }}"
+                    >
+                      {{ invoice.invoice_number }} — {{ invoice.customer.name }}
+                      — ₹{{ invoice.total }}
+                    </option>
+
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="amount"> Payment Amount </label>
+
+                  <input
+                    type="number"
+                    name="amount"
+                    id="amount"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="payment_method"> Payment Method </label>
+
+                  <select name="payment_method" id="payment_method" required>
+                    <option value="">Select method</option>
+
+                    <option value="CASH">Cash</option>
+
+                    <option value="UPI">UPI</option>
+
+                    <option value="CARD">Card</option>
+
+                    <option value="BANK">Bank Transfer</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="payment_date"> Payment Date </label>
+
+                  <input
+                    type="date"
+                    name="payment_date"
+                    id="payment_date"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="customer"> Customer </label>
+
+                  <input
+                    type="text"
+                    id="customer"
+                    readonly
+                    placeholder="Select an invoice"
+                  />
+                </div>
+              </div>
+
+              <div class="invoice-summary">
+                <div class="summary-row">
+                  <span>Invoice Total</span>
+                  <strong id="invoiceTotal">₹0.00</strong>
+                </div>
+
+                <div class="summary-row">
+                  <span>Already Paid</span>
+                  <strong id="alreadyPaid">₹0.00</strong>
+                </div>
+
+                <div class="summary-row remaining">
+                  <span>Remaining Balance</span>
+                  <strong id="remainingBalance">₹0.00</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="section-heading">Notes</div>
+
+              <div class="form-group">
+                <textarea
+                  name="notes"
+                  placeholder="Optional payment notes..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="actions">
+              <a href="{% url 'payments' %}" class="cancel-btn"> Cancel </a>
+
+              <button type="submit" class="submit-btn">Record Payment</button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const invoiceSelect = document.getElementById("invoice");
+      const customerInput = document.getElementById("customer");
+      const amountInput = document.getElementById("amount");
+
+      const invoiceTotal = document.getElementById("invoiceTotal");
+      const alreadyPaid = document.getElementById("alreadyPaid");
+      const remainingBalance = document.getElementById("remainingBalance");
+
+      const paymentDate = document.getElementById("payment_date");
+
+      const today = new Date();
+
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+
+      paymentDate.value = `${year}-${month}-${day}`;
+
+      invoiceSelect.addEventListener("change", function () {
+        const selectedOption =
+          invoiceSelect.options[invoiceSelect.selectedIndex];
+
+        if (!selectedOption.value) {
+          customerInput.value = "";
+
+          invoiceTotal.textContent = "₹0.00";
+          alreadyPaid.textContent = "₹0.00";
+          remainingBalance.textContent = "₹0.00";
+
+          return;
+        }
+
+        const total = parseFloat(selectedOption.dataset.total) || 0;
+
+        const customer = selectedOption.dataset.customer || "";
+
+        customerInput.value = customer;
+
+        invoiceTotal.textContent = "₹" + total.toFixed(2);
+
+        alreadyPaid.textContent = "₹0.00";
+
+        remainingBalance.textContent = "₹" + total.toFixed(2);
+
+        amountInput.max = total;
+      });
+
+      amountInput.addEventListener("input", function () {
+        const selectedOption =
+          invoiceSelect.options[invoiceSelect.selectedIndex];
+
+        if (!selectedOption.value) {
+          return;
+        }
+
+        const total = parseFloat(selectedOption.dataset.total) || 0;
+
+        const amount = parseFloat(amountInput.value) || 0;
+
+        const remaining = Math.max(total - amount, 0);
+
+        remainingBalance.textContent = "₹" + remaining.toFixed(2);
+      });
+    </script>
+  </body>
+</html>
