@@ -716,7 +716,7 @@
 
         <a href="{% url 'invoices' %}"> ▣ &nbsp; Invoices </a>
 
-        <a href="#"> ＋ &nbsp; Create Invoice </a>
+        <a href="{% url 'create_invoice' %}"> ＋ &nbsp; Create Invoice </a>
 
         <a href="{% url 'clients' %}"> ◉ &nbsp; Clients </a>
 
@@ -759,7 +759,7 @@
         </div>
 
         <div class="topbar-actions">
-          <a href="#" class="btn"> New Invoice </a>
+          <a href="{% url 'create_invoice' %}" class="btn"> New Invoice </a>
 
           <!-- PROFILE -->
 
@@ -943,7 +943,7 @@
           </div>
 
           <div class="actions">
-            <a href="#" class="action">
+            <a href="{% url 'create_invoice' %}" class="action">
               <div class="action-icon">+</div>
 
               <div class="action-text">
@@ -953,7 +953,7 @@
               </div>
             </a>
 
-            <a href="#" class="action">
+            <a href="{% url 'add_client' %}" class="action">
               <div class="action-icon">+</div>
 
               <div class="action-text">

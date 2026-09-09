@@ -22,5 +22,5 @@ urlpatterns = [
         "products/<int:product_id>/delete/", views.delete_product, name="delete_product"
     ),
     path("invoices/", views.invoices, name="invoices"),
-    
+    path("invoices/create/", views.create_invoice, name="create_invoice"),
 ]

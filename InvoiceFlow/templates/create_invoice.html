@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Create Invoice - InvoiceFlow</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #000;
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      /* =========================
+       SIDEBAR
+    ========================= */
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 250px;
+        height: 100vh;
+        background: #050505;
+        border-right: 1px solid #222;
+        padding: 30px 20px;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: 700;
+        margin-left: 15px;
+        margin-bottom: 42px;
+      }
+
+      .logo span {
+        color: #777;
+      }
+
+      .menu-title {
+        font-size: 12px;
+        color: #666;
+        letter-spacing: 2px;
+        margin: 0 15px 14px;
+        text-transform: uppercase;
+      }
+
+      /* =========================
+       COMPANY SWITCHER
+    ========================= */
+
+      .company-switcher {
+        position: relative;
+        margin-bottom: 32px;
+      }
+
+      .company-button {
+        width: 100%;
+        background: #080808;
+        border: 1px solid #292929;
+        border-radius: 10px;
+        color: #fff;
+        padding: 11px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .company-avatar {
+        width: 36px;
+        height: 36px;
+        background: #fff;
+        color: #000;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 10px;
+        flex-shrink: 0;
+      }
+
+      .company-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .company-info strong {
+        display: block;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .company-info small {
+        display: block;
+        color: #666;
+        font-size: 11px;
+        margin-top: 3px;
+      }
+
+      .company-arrow {
+        color: #777;
+        font-size: 12px;
+      }
+
+      .company-menu {
+        display: none;
+        position: absolute;
+        top: 54px;
+        left: 0;
+        width: 100%;
+        background: #0b0b0b;
+        border: 1px solid #292929;
+        border-radius: 10px;
+        padding: 7px;
+        z-index: 100;
+      }
+
+      .company-menu.show {
+        display: block;
+      }
+
+      .company-menu a {
+        display: block;
+        padding: 10px;
+        color: #aaa;
+        text-decoration: none;
+        border-radius: 7px;
+        font-size: 13px;
+      }
+
+      .company-menu a:hover,
+      .company-menu a.current {
+        background: #181818;
+        color: #fff;
+      }
+
+      .company-menu .create-company {
+        border-top: 1px solid #292929;
+        margin-top: 5px;
+        padding-top: 12px;
+        color: #fff;
+      }
+
+      /* =========================
+       NAVIGATION
+    ========================= */
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .nav a {
+        text-decoration: none;
+        color: #999;
+        padding: 13px 14px;
+        border-radius: 9px;
+        font-size: 15px;
+        transition: 0.2s;
+      }
+
+      .nav a:hover {
+        background: #151515;
+        color: #fff;
+      }
+
+      .nav a.active {
+        background: #fff;
+        color: #000;
+      }
+
+      /* =========================
+       MAIN
+    ========================= */
+
+      .main {
+        margin-left: 250px;
+        padding: 45px 50px;
+        min-height: 100vh;
+      }
+
+      .page-header {
+        margin-bottom: 30px;
+      }
+
+      .page-header h1 {
+        font-size: 34px;
+        margin-bottom: 8px;
+      }
+
+      .page-header p {
+        color: #777;
+        font-size: 14px;
+      }
+
+      /* =========================
+       FORM
+    ========================= */
+
+      .form-container {
+        max-width: 1000px;
+        background: #070707;
+        border: 1px solid #242424;
+        border-radius: 12px;
+        padding: 30px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      .form-section {
+        margin-bottom: 30px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        color: #aaa;
+        margin-bottom: 9px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        background: #050505;
+        border: 1px solid #292929;
+        border-radius: 8px;
+        padding: 13px 14px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: #555;
+      }
+
+      .form-group select {
+        cursor: pointer;
+      }
+
+      .form-group select option {
+        background: #111;
+        color: #fff;
+      }
+
+      /* =========================
+       INVOICE ITEMS
+    ========================= */
+
+      .items-container {
+        border: 1px solid #242424;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .items-header,
+      .item-row {
+        display: grid;
+        grid-template-columns: 2fr 0.8fr 1fr 0.8fr 1fr 45px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .items-header {
+        background: #0d0d0d;
+        padding: 14px 15px;
+        color: #666;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        border-bottom: 1px solid #242424;
+      }
+
+      .item-row {
+        padding: 15px;
+        border-bottom: 1px solid #181818;
+      }
+
+      .item-row:last-child {
+        border-bottom: none;
+      }
+
+      .item-row select,
+      .item-row input {
+        width: 100%;
+        background: #050505;
+        border: 1px solid #292929;
+        border-radius: 7px;
+        padding: 10px;
+        color: #fff;
+        outline: none;
+        font-size: 13px;
+      }
+
+      .item-row select:focus,
+      .item-row input:focus {
+        border-color: #555;
+      }
+
+      .item-row select option {
+        background: #111;
+        color: #fff;
+      }
+
+      .line-total {
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: right;
+      }
+
+      .remove-item {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #333;
+        border-radius: 7px;
+        background: transparent;
+        color: #aaa;
+        cursor: pointer;
+        font-size: 15px;
+      }
+
+      .remove-item:hover {
+        background: #fff;
+        color: #000;
+      }
+
+      .add-item-btn {
+        margin-top: 15px;
+        background: transparent;
+        border: 1px solid #333;
+        color: #aaa;
+        padding: 10px 15px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .add-item-btn:hover {
+        background: #fff;
+        color: #000;
+      }
+
+      /* =========================
+       TOTALS
+    ========================= */
+
+      .totals {
+        width: 360px;
+        margin-left: auto;
+        margin-top: 25px;
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 9px 0;
+        color: #999;
+        font-size: 14px;
+      }
+
+      .total-row span:last-child {
+        color: #fff;
+      }
+
+      .grand-total {
+        border-top: 1px solid #333;
+        margin-top: 8px;
+        padding-top: 15px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+      }
+
+      /* =========================
+       NOTES
+    ========================= */
+
+      .notes {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      /* =========================
+       ERROR
+    ========================= */
+
+      .error {
+        background: #181818;
+        border: 1px solid #444;
+        color: #ddd;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 22px;
+      }
+
+      /* =========================
+       ACTIONS
+    ========================= */
+
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 30px;
+        padding-top: 22px;
+        border-top: 1px solid #222;
+      }
+
+      .cancel-btn {
+        background: transparent;
+        border: 1px solid #333;
+        color: #aaa;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .cancel-btn:hover {
+        background: #151515;
+        color: #fff;
+      }
+
+      .save-btn {
+        background: #fff;
+        color: #000;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .save-btn:hover {
+        background: #ddd;
+      }
+
+      /* =========================
+       RESPONSIVE
+    ========================= */
+
+      @media (max-width: 900px) {
+        .sidebar {
+          width: 210px;
+        }
+
+        .main {
+          margin-left: 210px;
+          padding: 35px 25px;
+        }
+
+        .items-container {
+          overflow-x: auto;
+        }
+
+        .items-header,
+        .item-row {
+          min-width: 850px;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .sidebar {
+          position: relative;
+          width: 100%;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid #222;
+        }
+
+        .main {
+          margin-left: 0;
+          padding: 30px 18px;
+        }
+
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .form-container {
+          padding: 20px;
+        }
+
+        .totals {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- =========================
+       SIDEBAR
+  ========================= -->
+
+    <aside class="sidebar">
+      <div class="logo">Invoice<span>Flow</span></div>
+
+      <div class="menu-title">Company</div>
+
+      {% if companies %}
+
+      <div class="company-switcher">
+        <button class="company-button" onclick="toggleCompanyMenu()">
+          <div class="company-avatar">
+            {{ current_company.name|first|upper }}
+          </div>
+
+          <div class="company-info">
+            <strong> {{ current_company.name }} </strong>
+
+            <small> Current company </small>
+          </div>
+
+          <span class="company-arrow"> ▼ </span>
+        </button>
+
+        <div class="company-menu" id="companyMenu">
+          {% for company in companies %}
+
+          <a
+            href="{% url 'switch_company' company.id %}"
+            class="{% if current_company.id == company.id %}current{% endif %}"
+          >
+            {{ company.name }}
+          </a>
+
+          {% endfor %}
+
+          <a href="{% url 'create_company' %}" class="create-company">
+            ＋ Create Company
+          </a>
+        </div>
+      </div>
+
+      {% endif %}
+
+      <div class="menu-title">Menu</div>
+
+      <nav class="nav">
+        <a href="{% url 'dashboard' %}"> ⌂ &nbsp; Dashboard </a>
+
+        <a href="{% url 'invoices' %}"> ▣ &nbsp; Invoices </a>
+
+        <a href="{% url 'create_invoice' %}" class="active">
+          ＋ &nbsp; Create Invoice
+        </a>
+
+        <a href="{% url 'clients' %}"> ◉ &nbsp; Clients </a>
+
+        <a href="{% url 'products' %}"> ▤ &nbsp; Products </a>
+
+        <a href="#"> ▤ &nbsp; Payments </a>
+      </nav>
+
+      <div class="menu-title" style="margin-top: 35px">Settings</div>
+
+      <nav class="nav">
+        <a href="#"> ⚙ &nbsp; Settings </a>
+
+        <a href="#"> ? &nbsp; Help </a>
+      </nav>
+    </aside>
+
+    <!-- =========================
+       MAIN
+  ========================= -->
+
+    <main class="main">
+      <div class="page-header">
+        <h1>Create Invoice</h1>
+
+        <p>Create a new invoice for your customer.</p>
+      </div>
+
+      <div class="form-container">
+        {% if error %}
+
+        <div class="error">{{ error }}</div>
+
+        {% endif %}
+
+        <form method="POST" id="invoiceForm">
+          {% csrf_token %}
+
+          <!-- =========================
+             BASIC INFORMATION
+        ========================= -->
+
+          <div class="form-section">
+            <div class="section-title">Invoice Information</div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label> Customer * </label>
+
+                <select name="customer" required>
+                  <option value="">Select customer</option>
+
+                  {% for customer in customers %}
+
+                  <option value="{{ customer.id }}">{{ customer.name }}</option>
+
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label> Invoice Number * </label>
+
+                <input
+                  type="text"
+                  name="invoice_number"
+                  placeholder="INV-0001"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label> Issue Date * </label>
+
+                <input type="date" name="issue_date" id="issueDate" required />
+              </div>
+
+              <div class="form-group">
+                <label> Due Date * </label>
+
+                <input type="date" name="due_date" id="dueDate" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================
+             PRODUCTS
+        ========================= -->
+
+          <div class="form-section">
+            <div class="section-title">Invoice Items</div>
+
+            <div class="items-container">
+              <div class="items-header">
+                <div>Product</div>
+
+                <div>Quantity</div>
+
+                <div>Unit Price</div>
+
+                <div>Tax %</div>
+
+                <div>Line Total</div>
+
+                <div></div>
+              </div>
+
+              <div id="itemsList">
+                <div class="item-row">
+                  <select
+                    name="product[]"
+                    class="product-select"
+                    onchange="productChanged(this)"
+                    required
+                  >
+                    <option value="">Select product</option>
+
+                    {% for product in products %}
+
+                    <option
+                      value="{{ product.id }}"
+                      data-price="{{ product.price }}"
+                      data-tax="{{ product.tax }}"
+                    >
+                      {{ product.name }}
+                    </option>
+
+                    {% endfor %}
+                  </select>
+
+                  <input
+                    type="number"
+                    name="quantity[]"
+                    class="quantity"
+                    value="1"
+                    min="0.01"
+                    step="0.01"
+                    onchange="calculateRow(this)"
+                  />
+
+                  <input
+                    type="number"
+                    name="unit_price[]"
+                    class="unit-price"
+                    value="0"
+                    min="0"
+                    step="0.01"
+                    onchange="calculateRow(this)"
+                  />
+
+                  <input
+                    type="number"
+                    name="tax[]"
+                    class="tax-input"
+                    value="0"
+                    min="0"
+                    step="0.01"
+                    onchange="calculateTotals()"
+                  />
+
+                  <div class="line-total">₹0.00</div>
+
+                  <button
+                    type="button"
+                    class="remove-item"
+                    onclick="removeItem(this)"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="add-item-btn" onclick="addItem()">
+              ＋ Add Item
+            </button>
+          </div>
+
+          <!-- =========================
+             DISCOUNT
+        ========================= -->
+
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label> Discount Amount </label>
+
+                <input
+                  type="number"
+                  name="discount"
+                  id="discount"
+                  value="0"
+                  min="0"
+                  step="0.01"
+                  onchange="calculateTotals()"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================
+             TOTALS
+        ========================= -->
+
+          <div class="totals">
+            <div class="total-row">
+              <span> Subtotal </span>
+
+              <span id="subtotal"> ₹0.00 </span>
+            </div>
+
+            <div class="total-row">
+              <span> Tax </span>
+
+              <span id="taxTotal"> ₹0.00 </span>
+            </div>
+
+            <div class="total-row">
+              <span> Discount </span>
+
+              <span id="discountTotal"> ₹0.00 </span>
+            </div>
+
+            <div class="total-row grand-total">
+              <span> Total </span>
+
+              <span id="grandTotal"> ₹0.00 </span>
+            </div>
+          </div>
+
+          <!-- =========================
+             NOTES
+        ========================= -->
+
+          <div class="form-section" style="margin-top: 30px">
+            <div class="form-group">
+              <label> Notes </label>
+
+              <textarea
+                name="notes"
+                class="notes"
+                placeholder="Add any notes for the customer..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- =========================
+             ACTIONS
+        ========================= -->
+
+          <div class="form-actions">
+            <a href="{% url 'invoices' %}" class="cancel-btn"> Cancel </a>
+
+            <button type="submit" class="save-btn">Create Invoice</button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <script>
+      /* =========================
+       COMPANY MENU
+    ========================= */
+
+      function toggleCompanyMenu() {
+        const menu = document.getElementById("companyMenu");
+
+        menu.classList.toggle("show");
+      }
+
+      document.addEventListener("click", function (event) {
+        const switcher = document.querySelector(".company-switcher");
+
+        const menu = document.getElementById("companyMenu");
+
+        if (switcher && !switcher.contains(event.target)) {
+          menu.classList.remove("show");
+        }
+      });
+
+      /* =========================
+       PRODUCT CHANGE
+    ========================= */
+
+      function productChanged(select) {
+        const row = select.closest(".item-row");
+
+        const option = select.options[select.selectedIndex];
+
+        const price = option.getAttribute("data-price");
+
+        const tax = option.getAttribute("data-tax");
+
+        if (price !== null) {
+          row.querySelector(".unit-price").value = price;
+        }
+
+        if (tax !== null) {
+          row.querySelector(".tax-input").value = tax;
+        }
+
+        calculateRow(row.querySelector(".quantity"));
+      }
+
+      /* =========================
+       CALCULATE ROW
+    ========================= */
+
+      function calculateRow(input) {
+        const row = input.closest(".item-row");
+
+        const quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+
+        const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+
+        const tax = parseFloat(row.querySelector(".tax-input").value) || 0;
+
+        const subtotal = quantity * price;
+
+        const taxAmount = (subtotal * tax) / 100;
+
+        const total = subtotal + taxAmount;
+
+        row.querySelector(".line-total").textContent = "₹" + total.toFixed(2);
+
+        calculateTotals();
+      }
+
+      /* =========================
+       CALCULATE TOTALS
+    ========================= */
+
+      function calculateTotals() {
+        const rows = document.querySelectorAll(".item-row");
+
+        let subtotal = 0;
+        let taxTotal = 0;
+
+        rows.forEach(function (row) {
+          const quantity =
+            parseFloat(row.querySelector(".quantity").value) || 0;
+
+          const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+
+          const tax = parseFloat(row.querySelector(".tax-input").value) || 0;
+
+          const rowSubtotal = quantity * price;
+
+          const rowTax = (rowSubtotal * tax) / 100;
+
+          subtotal += rowSubtotal;
+          taxTotal += rowTax;
+        });
+
+        const discount =
+          parseFloat(document.getElementById("discount").value) || 0;
+
+        const total = subtotal + taxTotal - discount;
+
+        document.getElementById("subtotal").textContent =
+          "₹" + subtotal.toFixed(2);
+
+        document.getElementById("taxTotal").textContent =
+          "₹" + taxTotal.toFixed(2);
+
+        document.getElementById("discountTotal").textContent =
+          "₹" + discount.toFixed(2);
+
+        document.getElementById("grandTotal").textContent =
+          "₹" + Math.max(total, 0).toFixed(2);
+      }
+
+      /* =========================
+       ADD ITEM
+    ========================= */
+
+      function addItem() {
+        const itemsList = document.getElementById("itemsList");
+
+        const firstRow = document.querySelector(".item-row");
+
+        const newRow = firstRow.cloneNode(true);
+
+        newRow.querySelector(".product-select").value = "";
+
+        newRow.querySelector(".quantity").value = "1";
+
+        newRow.querySelector(".unit-price").value = "0";
+
+        newRow.querySelector(".tax-input").value = "0";
+
+        newRow.querySelector(".line-total").textContent = "₹0.00";
+
+        itemsList.appendChild(newRow);
+
+        calculateTotals();
+      }
+
+      /* =========================
+       REMOVE ITEM
+    ========================= */
+
+      function removeItem(button) {
+        const rows = document.querySelectorAll(".item-row");
+
+        if (rows.length === 1) {
+          return;
+        }
+
+        button.closest(".item-row").remove();
+
+        calculateTotals();
+      }
+
+      /* =========================
+       DEFAULT DATES
+    ========================= */
+
+      const today = new Date();
+
+      const formattedToday = today.toISOString().split("T")[0];
+
+      document.getElementById("issueDate").value = formattedToday;
+
+      const dueDate = new Date();
+
+      dueDate.setDate(dueDate.getDate() + 30);
+
+      const formattedDueDate = dueDate.toISOString().split("T")[0];
+
+      document.getElementById("dueDate").value = formattedDueDate;
+    </script>
+  </body>
+</html>

@@ -661,12 +661,12 @@
           <span>Dashboard</span>
         </a>
 
-        <a href="#" class="nav-item">
+        <a href="{% url 'invoices' %}" class="nav-item">
           <span class="nav-icon">▤</span>
           <span>Invoices</span>
         </a>
 
-        <a href="#" class="nav-item">
+        <a href="{% url 'create_invoice' %}" class="nav-item">
           <span class="nav-icon">＋</span>
           <span>Create Invoice</span>
         </a>
@@ -674,6 +674,11 @@
         <a href="{% url 'clients' %}" class="nav-item active">
           <span class="nav-icon">♙</span>
           <span>Clients</span>
+        </a>
+
+        <a href="{% url 'products' %}" class="nav-item">
+          <span class="nav-icon">▤</span>
+          <span>Products</span>
         </a>
 
         <a href="#" class="nav-item">
