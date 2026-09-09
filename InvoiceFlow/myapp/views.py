@@ -838,7 +838,7 @@ def create_invoice(request):
             return render(
                 request,
                 "create_invoice.html",
-                {
+                {   
                     "current_company": current_company,
                     "companies": companies,
                     "customers": customers,
