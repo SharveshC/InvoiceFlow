@@ -636,57 +636,43 @@ def create_invoice(request):
         },
     )
 
+
 @login_required
 def payments(request):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    payments = Payment.objects.filter(
-        invoice__company=current_company
-    ).select_related(
-        "invoice",
-        "invoice__customer"
-    ).order_by(
-        "-payment_date",
-        "-created_at"
+    payments = (
+        Payment.objects.filter(invoice__company=current_company)
+        .select_related("invoice", "invoice__customer")
+        .order_by("-payment_date", "-created_at")
     )
 
-    total_received = payments.aggregate(
-        total=Sum("amount")
-    )["total"] or Decimal("0.00")
+    total_received = payments.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
 
     today = date.today()
 
     this_month = payments.filter(
-        payment_date__year=today.year,
-        payment_date__month=today.month
-    ).aggregate(
-        total=Sum("amount")
-    )["total"] or Decimal("0.00")
+        payment_date__year=today.year, payment_date__month=today.month
+    ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
 
     return render(
         request,
@@ -697,44 +683,38 @@ def payments(request):
             "companies": companies,
             "total_received": total_received,
             "this_month": this_month,
-        }
+        },
     )
 
 
 @login_required
 def record_payment(request):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    invoices = Invoice.objects.filter(
-        company=current_company
-    ).select_related(
-        "customer"
-    ).order_by("-created_at")
+    invoices = (
+        Invoice.objects.filter(company=current_company)
+        .select_related("customer")
+        .order_by("-created_at")
+    )
 
     if request.method == "POST":
 
@@ -755,7 +735,7 @@ def record_payment(request):
                     "companies": companies,
                     "invoices": invoices,
                     "error": "Enter a valid payment amount.",
-                }
+                },
             )
 
         if amount <= 0:
@@ -767,7 +747,7 @@ def record_payment(request):
                     "companies": companies,
                     "invoices": invoices,
                     "error": "Payment amount must be greater than zero.",
-                }
+                },
             )
 
         try:
@@ -781,15 +761,16 @@ def record_payment(request):
                     "companies": companies,
                     "invoices": invoices,
                     "error": "Enter a valid payment date.",
-                }
+                },
             )
 
         with transaction.atomic():
 
-            invoice = Invoice.objects.select_for_update().filter(
-                id=invoice_id,
-                company=current_company
-            ).first()
+            invoice = (
+                Invoice.objects.select_for_update()
+                .filter(id=invoice_id, company=current_company)
+                .first()
+            )
 
             if invoice is None:
                 return render(
@@ -800,7 +781,7 @@ def record_payment(request):
                         "companies": companies,
                         "invoices": invoices,
                         "error": "Invalid invoice selected.",
-                    }
+                    },
                 )
 
             if invoice.status == "CANCELLED":
@@ -812,12 +793,12 @@ def record_payment(request):
                         "companies": companies,
                         "invoices": invoices,
                         "error": "Payment cannot be recorded for a cancelled invoice.",
-                    }
+                    },
                 )
 
-            paid_amount = invoice.payments.aggregate(
-                total=Sum("amount")
-            )["total"] or Decimal("0.00")
+            paid_amount = invoice.payments.aggregate(total=Sum("amount"))[
+                "total"
+            ] or Decimal("0.00")
 
             remaining_amount = invoice.total - paid_amount
 
@@ -830,7 +811,7 @@ def record_payment(request):
                         "companies": companies,
                         "invoices": invoices,
                         "error": "This invoice has already been fully paid.",
-                    }
+                    },
                 )
 
             if amount > remaining_amount:
@@ -842,7 +823,7 @@ def record_payment(request):
                         "companies": companies,
                         "invoices": invoices,
                         "error": f"Payment cannot exceed the remaining balance of ₹{remaining_amount}.",
-                    }
+                    },
                 )
 
             Payment.objects.create(
@@ -850,7 +831,7 @@ def record_payment(request):
                 amount=amount,
                 payment_method=payment_method,
                 payment_date=payment_date_value,
-                notes=notes
+                notes=notes,
             )
 
             new_paid_amount = paid_amount + amount
@@ -862,12 +843,7 @@ def record_payment(request):
             else:
                 invoice.status = "SENT"
 
-            invoice.save(
-                update_fields=[
-                    "status",
-                    "updated_at"
-                ]
-            )
+            invoice.save(update_fields=["status", "updated_at"])
 
         return redirect("payments")
 
@@ -878,5 +854,5 @@ def record_payment(request):
             "current_company": current_company,
             "companies": companies,
             "invoices": invoices,
-        }
+        },
     )
