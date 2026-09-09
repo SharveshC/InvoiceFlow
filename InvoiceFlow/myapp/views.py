@@ -608,3 +608,35 @@ def edit_product(request, product_id):
             "companies": companies,
         }
     )
+    
+@login_required
+def delete_product(request, product_id):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    product = Product.objects.filter(
+        id=product_id,
+        company_id=current_company_id
+    ).first()
+
+    if product is None:
+        return redirect("products")
+
+    if request.method == "POST":
+        product.delete()
+        return redirect("products")
+
+    return redirect("products")

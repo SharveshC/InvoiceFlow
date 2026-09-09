@@ -546,7 +546,7 @@
           <p>Manage your products and services.</p>
         </div>
 
-        <a href="#" class="add-product-btn"> ＋ Add Product </a>
+        <a href="{% url 'add_product' %}" class="add-product-btn"> ＋ Add Product </a>
       </div>
 
       <!-- =========================
@@ -610,15 +610,27 @@
                   ✎
                 </a>
 
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Delete Product"
-                  aria-label="Delete Product"
-                  onclick="deleteProduct('{{ product.name|escapejs }}')"
+                <form
+                  method="POST"
+                  action="{% url 'delete_product' product.id %}"
+                  style="display: inline"
+                  onsubmit="
+                    return confirm(
+                      'Are you sure you want to delete this product?',
+                    );
+                  "
                 >
-                  🗑
-                </button>
+                  {% csrf_token %}
+
+                  <button
+                    type="submit"
+                    class="icon-btn"
+                    title="Delete Product"
+                    aria-label="Delete Product"
+                  >
+                    🗑
+                  </button>
+                </form>
               </td>
             </tr>
 
@@ -681,16 +693,6 @@
             row.style.display = "none";
           }
         });
-      }
-
-      function deleteProduct(productName) {
-        const confirmed = confirm(
-          "Are you sure you want to delete " + productName + "?",
-        );
-
-        if (confirmed) {
-          alert("Delete functionality will be added next.");
-        }
       }
     </script>
   </body>
