@@ -8,37 +8,72 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('myapp', '0002_alter_company_phone'),
+        ("myapp", "0002_alter_company_phone"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='company',
-            name='gst_no',
+            model_name="company",
+            name="gst_no",
         ),
         migrations.AddField(
-            model_name='company',
-            name='gst_number',
+            model_name="company",
+            name="gst_number",
             field=models.CharField(blank=True, max_length=15, null=True),
         ),
         migrations.AlterField(
-            model_name='company',
-            name='name',
+            model_name="company",
+            name="name",
             field=models.CharField(max_length=200),
         ),
         migrations.CreateModel(
-            name='Membership',
+            name="Membership",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.CharField(choices=[('OWNER', 'Owner'), ('ADMIN', 'Admin'), ('STAFF', 'Staff')], default='STAFF', max_length=10)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to='myapp.company')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("OWNER", "Owner"),
+                            ("ADMIN", "Admin"),
+                            ("STAFF", "Staff"),
+                        ],
+                        default="STAFF",
+                        max_length=10,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "company",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="memberships",
+                        to="myapp.company",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="memberships",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddConstraint(
-            model_name='membership',
-            constraint=models.UniqueConstraint(fields=('user', 'company'), name='unique_user_company'),
+            model_name="membership",
+            constraint=models.UniqueConstraint(
+                fields=("user", "company"), name="unique_user_company"
+            ),
         ),
     ]

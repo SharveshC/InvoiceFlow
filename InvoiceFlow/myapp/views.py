@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from .models import Company, Membership, Customer, Product
+from .models import Company, Membership, Customer, Product, Invoice
 
 
 def home(request):
@@ -17,31 +17,19 @@ def login_page(request):
         password = request.POST.get("password")
 
         try:
-            user = User.objects.get(
-                email__iexact=email
-            )
+            user = User.objects.get(email__iexact=email)
             username = user.username
 
         except User.DoesNotExist:
             username = None
 
-        user = authenticate(
-            request,
-            username=username,
-            password=password
-        )
+        user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
             return redirect("dashboard")
 
-        return render(
-            request,
-            "login.html",
-            {
-                "error": "Invalid email or password."
-            }
-        )
+        return render(request, "login.html", {"error": "Invalid email or password."})
 
     return render(request, "login.html")
 
@@ -55,31 +43,19 @@ def signup(request):
         confirm_password = request.POST.get("confirm_password")
 
         if password != confirm_password:
-            return render(
-                request,
-                "signup.html",
-                {
-                    "error": "Passwords do not match."
-                }
-            )
+            return render(request, "signup.html", {"error": "Passwords do not match."})
 
-        if User.objects.filter(
-            email__iexact=email
-        ).exists():
+        if User.objects.filter(email__iexact=email).exists():
             return render(
                 request,
                 "signup.html",
-                {
-                    "error": "An account with this email already exists."
-                }
+                {"error": "An account with this email already exists."},
             )
 
         username = email
 
         user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
+            username=username, email=email, password=password
         )
 
         user.first_name = full_name
@@ -93,29 +69,17 @@ def signup(request):
 @login_required
 def dashboard(request):
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     current_company = None
 
     if current_company_id:
         current_company = next(
-            (
-                company
-                for company in companies
-                if company.id == current_company_id
-            ),
-            None
+            (company for company in companies if company.id == current_company_id), None
         )
 
     if current_company is None and companies:
@@ -128,7 +92,7 @@ def dashboard(request):
         {
             "companies": companies,
             "current_company": current_company,
-        }
+        },
     )
 
 
@@ -155,9 +119,7 @@ def create_company(request):
             return render(
                 request,
                 "create_company.html",
-                {
-                    "error": "Please fill in all required fields."
-                }
+                {"error": "Please fill in all required fields."},
             )
 
         company = Company.objects.create(
@@ -165,31 +127,23 @@ def create_company(request):
             email=email,
             phone=phone,
             address=address,
-            gst_number=gst_number or None
+            gst_number=gst_number or None,
         )
 
-        Membership.objects.create(
-            user=request.user,
-            company=company,
-            role="OWNER"
-        )
+        Membership.objects.create(user=request.user, company=company, role="OWNER")
 
         request.session["current_company_id"] = company.id
 
         return redirect("dashboard")
 
-    return render(
-        request,
-        "create_company.html"
-    )
+    return render(request, "create_company.html")
 
 
 @login_required
 def switch_company(request, company_id):
 
     membership = Membership.objects.filter(
-        user=request.user,
-        company_id=company_id
+        user=request.user, company_id=company_id
     ).first()
 
     if membership is None:
@@ -203,35 +157,27 @@ def switch_company(request, company_id):
 @login_required
 def clients(request):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    customers = Customer.objects.filter(
-        company=current_company
-    ).order_by("-created_at")
+    customers = Customer.objects.filter(company=current_company).order_by("-created_at")
 
     return render(
         request,
@@ -240,38 +186,32 @@ def clients(request):
             "customers": customers,
             "current_company": current_company,
             "companies": companies,
-        }
+        },
     )
 
 
 @login_required
 def add_client(request):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
     if request.method == "POST":
 
@@ -288,8 +228,8 @@ def add_client(request):
                 {
                     "current_company": current_company,
                     "companies": companies,
-                    "error": "Please fill in all required fields."
-                }
+                    "error": "Please fill in all required fields.",
+                },
             )
 
         Customer.objects.create(
@@ -298,7 +238,7 @@ def add_client(request):
             email=email,
             phone=phone,
             address=address,
-            gst_number=gst_number or None
+            gst_number=gst_number or None,
         )
 
         return redirect("clients")
@@ -309,43 +249,34 @@ def add_client(request):
         {
             "current_company": current_company,
             "companies": companies,
-        }
+        },
     )
-    
-    
+
+
 @login_required
 def edit_client(request, client_id):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    customer = Customer.objects.filter(
-        id=client_id,
-        company=current_company
-    ).first()
+    customer = Customer.objects.filter(id=client_id, company=current_company).first()
 
     if customer is None:
         return redirect("clients")
@@ -366,8 +297,8 @@ def edit_client(request, client_id):
                     "customer": customer,
                     "current_company": current_company,
                     "companies": companies,
-                    "error": "Please fill in all required fields."
-                }
+                    "error": "Please fill in all required fields.",
+                },
             )
 
         customer.name = name
@@ -386,33 +317,30 @@ def edit_client(request, client_id):
             "customer": customer,
             "current_company": current_company,
             "companies": companies,
-        }
+        },
     )
-    
+
+
 @login_required
 def delete_client(request, client_id):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    customer = Customer.objects.filter(
-        id=client_id,
-        company=current_company
-    ).first()
+    customer = Customer.objects.filter(id=client_id, company=current_company).first()
 
     if customer is None:
         return redirect("clients")
@@ -427,35 +355,27 @@ def delete_client(request, client_id):
 @login_required
 def products(request):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    products = Product.objects.filter(
-        company=current_company
-    ).order_by("-created_at")
+    products = Product.objects.filter(company=current_company).order_by("-created_at")
 
     return render(
         request,
@@ -464,37 +384,32 @@ def products(request):
             "products": products,
             "current_company": current_company,
             "companies": companies,
-        }
+        },
     )
-    
+
+
 @login_required
 def add_product(request):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
     if request.method == "POST":
 
@@ -510,8 +425,8 @@ def add_product(request):
                 {
                     "current_company": current_company,
                     "companies": companies,
-                    "error": "Product name and price are required."
-                }
+                    "error": "Product name and price are required.",
+                },
             )
 
         Product.objects.create(
@@ -519,7 +434,7 @@ def add_product(request):
             name=name,
             description=description or None,
             price=price,
-            tax=tax or 0
+            tax=tax or 0,
         )
 
         return redirect("products")
@@ -530,43 +445,34 @@ def add_product(request):
         {
             "current_company": current_company,
             "companies": companies,
-        }
+        },
     )
-    
+
 
 @login_required
 def edit_product(request, product_id):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
-    membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
-    ).select_related("company").first()
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
 
     if membership is None:
         return redirect("dashboard")
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
-    product = Product.objects.filter(
-        id=product_id,
-        company=current_company
-    ).first()
+    product = Product.objects.filter(id=product_id, company=current_company).first()
 
     if product is None:
         return redirect("products")
@@ -586,8 +492,8 @@ def edit_product(request, product_id):
                     "product": product,
                     "current_company": current_company,
                     "companies": companies,
-                    "error": "Product name and price are required."
-                }
+                    "error": "Product name and price are required.",
+                },
             )
 
         product.name = name
@@ -606,30 +512,27 @@ def edit_product(request, product_id):
             "product": product,
             "current_company": current_company,
             "companies": companies,
-        }
+        },
     )
-    
+
+
 @login_required
 def delete_product(request, product_id):
 
-    current_company_id = request.session.get(
-        "current_company_id"
-    )
+    current_company_id = request.session.get("current_company_id")
 
     if not current_company_id:
         return redirect("dashboard")
 
     membership = Membership.objects.filter(
-        user=request.user,
-        company_id=current_company_id
+        user=request.user, company_id=current_company_id
     ).first()
 
     if membership is None:
         return redirect("dashboard")
 
     product = Product.objects.filter(
-        id=product_id,
-        company_id=current_company_id
+        id=product_id, company_id=current_company_id
     ).first()
 
     if product is None:
@@ -640,3 +543,43 @@ def delete_product(request, product_id):
         return redirect("products")
 
     return redirect("products")
+
+
+@login_required
+def invoices(request):
+
+    current_company_id = request.session.get("current_company_id")
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = (
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        .select_related("company")
+        .first()
+    )
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
+
+    companies = [membership.company for membership in memberships]
+
+    invoices = (
+        Invoice.objects.filter(company=current_company)
+        .select_related("customer")
+        .order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "invoices.html",
+        {
+            "invoices": invoices,
+            "current_company": current_company,
+            "companies": companies,
+        },
+    )
