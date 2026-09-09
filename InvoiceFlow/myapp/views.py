@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Company, Membership
+from .models import Company, Membership, Customer
 
 
 # HOME
@@ -187,3 +187,97 @@ def switch_company(request, company_id):
     request.session["current_company_id"] = company_id
 
     return redirect("dashboard")
+
+
+# CLIENTS
+@login_required
+def clients(request):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    customers = Customer.objects.filter(
+        company=current_company
+    ).order_by("-created_at")
+
+    return render(
+        request,
+        "clients.html",
+        {
+            "customers": customers,
+            "current_company": current_company,
+        }
+    )
+    
+    
+# ADD CLIENT
+@login_required
+def add_client(request):
+
+    current_company_id = request.session.get(
+        "current_company_id"
+    )
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = Membership.objects.filter(
+        user=request.user,
+        company_id=current_company_id
+    ).select_related("company").first()
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        address = request.POST.get("address")
+        gst_number = request.POST.get("gst_number")
+
+        if not name or not email or not phone or not address:
+            return render(
+                request,
+                "add_client.html",
+                {
+                    "current_company": current_company,
+                    "error": "Please fill in all required fields."
+                }
+            )
+
+        Customer.objects.create(
+            company=current_company,
+            name=name,
+            email=email,
+            phone=phone,
+            address=address,
+            gst_number=gst_number or None
+        )
+
+        return redirect("clients")
+
+    return render(
+        request,
+        "add_client.html",
+        {
+            "current_company": current_company
+        }
+    )
