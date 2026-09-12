@@ -1080,3 +1080,82 @@ def record_payment(request):
             "invoices": invoices,
         },
     )
+
+
+
+@login_required
+def invoice_details(request, invoice_id):
+
+    current_company_id = request.session.get("current_company_id")
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = (
+        Membership.objects.filter(
+            user=request.user,
+            company_id=current_company_id
+        )
+        .select_related("company")
+        .first()
+    )
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    invoice = (
+        Invoice.objects
+        .select_related("customer")
+        .filter(
+            id=invoice_id,
+            company=current_company
+        )
+        .first()
+    )
+
+    if invoice is None:
+        return redirect("invoices")
+
+    items = (
+        InvoiceItem.objects
+        .filter(invoice=invoice)
+        .select_related("product")
+    )
+
+    payments = (
+        Payment.objects
+        .filter(invoice=invoice)
+        .order_by("-payment_date", "-created_at")
+    )
+
+    paid_amount = (
+        payments.aggregate(total=Sum("amount"))["total"]
+        or Decimal("0.00")
+    )
+
+    remaining_amount = invoice.total - paid_amount
+
+    memberships = Membership.objects.filter(
+        user=request.user
+    ).select_related("company")
+
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    return render(
+        request,
+        "invoice_details.html",
+        {
+            "current_company": current_company,
+            "companies": companies,
+            "invoice": invoice,
+            "items": items,
+            "payments": payments,
+            "paid_amount": paid_amount,
+            "remaining_amount": remaining_amount,
+        },
+    )
