@@ -9,8 +9,8 @@
 
     <style>
       /* =========================
-     GLOBAL
-  ========================= */
+           GLOBAL
+        ========================= */
 
       html {
         overflow-y: scroll;
@@ -24,7 +24,10 @@
       }
 
       body {
-        font-family: Arial, Helvetica, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+
         background: #000;
         color: #fff;
         min-height: 100vh;
@@ -32,25 +35,33 @@
       }
 
       /* =========================
-     SIDEBAR
-  ========================= */
+           SIDEBAR
+        ========================= */
 
       .sidebar {
         position: fixed;
         left: 0;
         top: 0;
+
         width: 250px;
         height: 100vh;
+
         background: #050505;
         border-right: 1px solid #222;
+
         padding: 28px 18px;
+
+        overflow-y: auto;
       }
 
       .logo {
-        font-size: 24px;
+        font-size: 23px;
         font-weight: 700;
-        margin-left: 15px;
-        margin-bottom: 42px;
+
+        letter-spacing: -1px;
+
+        padding: 0 14px;
+        margin-bottom: 35px;
       }
 
       .logo span {
@@ -58,46 +69,61 @@
       }
 
       .menu-title {
-        font-size: 12px;
+        font-size: 11px;
         color: #666;
-        letter-spacing: 2px;
-        margin: 0 15px 14px;
+
         text-transform: uppercase;
+        letter-spacing: 1.5px;
+
+        padding: 0 14px;
+        margin-bottom: 12px;
       }
 
       /* =========================
-     COMPANY SWITCHER
-  ========================= */
+           COMPANY SWITCHER
+        ========================= */
 
       .company-switcher {
         position: relative;
-        margin-bottom: 32px;
+        margin-bottom: 30px;
       }
 
       .company-button {
         width: 100%;
-        background: #080808;
-        border: 1px solid #292929;
-        border-radius: 10px;
+
+        background: #0b0b0b;
+
+        border: 1px solid #222;
+        border-radius: 9px;
+
         color: #fff;
-        padding: 11px;
+
+        padding: 10px;
+
         display: flex;
         align-items: center;
+
+        gap: 10px;
+
         cursor: pointer;
         text-align: left;
       }
 
       .company-avatar {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
+
         background: #fff;
         color: #000;
-        border-radius: 8px;
+
+        border-radius: 7px;
+
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        margin-right: 10px;
+
+        font-weight: 700;
+
         flex-shrink: 0;
       }
 
@@ -108,7 +134,9 @@
 
       .company-info strong {
         display: block;
-        font-size: 13px;
+
+        font-size: 12px;
+
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -116,27 +144,36 @@
 
       .company-info small {
         display: block;
+
         color: #666;
-        font-size: 11px;
+        font-size: 10px;
+
         margin-top: 3px;
       }
 
       .company-arrow {
         color: #777;
-        font-size: 12px;
+        font-size: 11px;
       }
 
       .company-menu {
         display: none;
+
         position: absolute;
-        top: 54px;
+
+        top: 48px;
         left: 0;
+
         width: 100%;
+
         background: #0b0b0b;
+
         border: 1px solid #292929;
-        border-radius: 10px;
+        border-radius: 9px;
+
         padding: 7px;
-        z-index: 100;
+
+        z-index: 1000;
       }
 
       .company-menu.show {
@@ -145,11 +182,16 @@
 
       .company-menu a {
         display: block;
+
         padding: 10px;
+
         color: #aaa;
+
         text-decoration: none;
+
         border-radius: 7px;
-        font-size: 13px;
+
+        font-size: 12px;
       }
 
       .company-menu a:hover,
@@ -160,34 +202,38 @@
 
       .company-menu .create-company {
         border-top: 1px solid #292929;
+
         margin-top: 5px;
         padding-top: 12px;
+
         color: #fff;
       }
 
       /* =========================
-     NAVIGATION
-  ========================= */
+           NAVIGATION
+        ========================= */
 
       .nav {
         display: flex;
         flex-direction: column;
-        gap: 7px;
+
+        gap: 5px;
       }
 
       .nav a {
         text-decoration: none;
+
         color: #999;
-        padding: 13px 14px;
-        border-radius: 9px;
-        font-size: 15px;
-        transition:
-          background 0.2s ease,
-          color 0.2s ease;
+
+        padding: 12px 14px;
+
+        border-radius: 8px;
+
+        font-size: 14px;
       }
 
       .nav a:hover {
-        background: #151515;
+        background: #111;
         color: #fff;
       }
 
@@ -197,30 +243,41 @@
       }
 
       /* =========================
-     MAIN
-  ========================= */
+           MAIN
+        ========================= */
 
       .main {
         margin-left: 250px;
+
         min-height: 100vh;
-        padding: 35px 45px;
+
+        background: #000;
+
+        padding: 35px;
+
         width: calc(100% - 250px);
       }
 
       /* =========================
-     TOP SECTION
-  ========================= */
+           TOP SECTION
+        ========================= */
 
       .top-section {
         display: flex;
+
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 35px;
+
+        margin-bottom: 25px;
       }
 
       .page-title h1 {
         font-size: 30px;
+
+        font-weight: 700;
+
         letter-spacing: -1px;
+
         margin-bottom: 8px;
       }
 
@@ -232,12 +289,18 @@
       .create-btn {
         background: #fff;
         color: #000;
+
         border: none;
+
         padding: 13px 20px;
+
         border-radius: 8px;
+
         font-size: 14px;
         font-weight: 600;
+
         text-decoration: none;
+
         display: inline-block;
       }
 
@@ -246,29 +309,46 @@
       }
 
       /* =========================
-     TOOLBAR
-  ========================= */
+           TOOLBAR
+        ========================= */
 
       .toolbar {
         display: flex;
-        justify-content: space-between;
+
         align-items: center;
-        margin-bottom: 18px;
+
+        gap: 12px;
+
+        margin-bottom: 20px;
       }
+
+      /* =========================
+           SEARCH
+        ========================= */
 
       .search-box {
         position: relative;
-        width: 330px;
+
+        width: 368px;
       }
 
       .search-box input {
         width: 100%;
+
+        height: 48px;
+
         background: #080808;
+
         border: 1px solid #292929;
-        border-radius: 8px;
+
+        border-radius: 9px;
+
         padding: 12px 14px 12px 40px;
+
         color: #fff;
+
         font-size: 14px;
+
         outline: none;
       }
 
@@ -276,45 +356,107 @@
         border-color: #555;
       }
 
+      .search-box input::placeholder {
+        color: #666;
+      }
+
       .search-icon {
         position: absolute;
+
         left: 14px;
-        top: 11px;
+        top: 14px;
+
         color: #666;
+
         font-size: 15px;
       }
 
       /* =========================
-     TABLE
-  ========================= */
+           STATUS FILTER
+        ========================= */
+
+      .status-filter {
+        position: relative;
+      }
+
+      .status-filter select {
+        height: 48px;
+
+        min-width: 150px;
+
+        padding: 0 38px 0 14px;
+
+        background: #080808;
+
+        color: #fff;
+
+        border: 1px solid #292929;
+
+        border-radius: 9px;
+
+        font-size: 14px;
+
+        font-family: inherit;
+
+        outline: none;
+
+        cursor: pointer;
+      }
+
+      .status-filter select:focus {
+        border-color: #555;
+      }
+
+      .status-filter select option {
+        background: #0b0b0b;
+        color: #fff;
+      }
+
+      /* =========================
+           TABLE
+        ========================= */
 
       .table-container {
         background: #070707;
+
         border: 1px solid #242424;
+
         border-radius: 12px;
+
         overflow: hidden;
       }
 
       table {
         width: 100%;
+
         border-collapse: collapse;
       }
 
       th {
         text-align: left;
+
         padding: 17px 22px;
+
         font-size: 11px;
+
         font-weight: 500;
+
         color: #666;
+
         text-transform: uppercase;
+
         letter-spacing: 1px;
+
         border-bottom: 1px solid #222;
       }
 
       td {
         padding: 19px 22px;
+
         border-bottom: 1px solid #181818;
+
         font-size: 14px;
+
         color: #aaa;
       }
 
@@ -328,6 +470,7 @@
 
       .invoice-number {
         color: #fff;
+
         font-weight: 600;
       }
 
@@ -337,20 +480,27 @@
 
       .amount {
         color: #fff;
+
         font-weight: 600;
       }
 
       /* =========================
-     STATUS
-  ========================= */
+           STATUS
+        ========================= */
 
       .status {
         display: inline-block;
+
         padding: 6px 10px;
+
         border: 1px solid #333;
+
         border-radius: 20px;
+
         font-size: 11px;
+
         text-transform: uppercase;
+
         letter-spacing: 0.5px;
       }
 
@@ -374,40 +524,50 @@
 
       .status-cancelled {
         color: #666;
+
         text-decoration: line-through;
       }
 
       /* =========================
-     ACTIONS
-  ========================= */
+           ACTIONS
+        ========================= */
 
       .actions-header {
         text-align: center !important;
+
         width: 120px;
       }
 
       .actions-cell {
         text-align: center !important;
+
         width: 120px;
+
         white-space: nowrap;
       }
 
       .icon-btn {
         width: 34px;
         height: 34px;
+
         display: inline-flex;
+
         align-items: center;
         justify-content: center;
+
         border: 1px solid #333;
+
         border-radius: 7px;
+
         background: transparent;
+
         color: #aaa;
+
         font-size: 16px;
+
         cursor: pointer;
+
         text-decoration: none;
-        transition:
-          background 0.2s ease,
-          color 0.2s ease;
       }
 
       .icon-btn:hover {
@@ -416,41 +576,68 @@
       }
 
       /* =========================
-     EMPTY STATE
-  ========================= */
+           NO FILTER RESULTS
+        ========================= */
+
+      .no-results {
+        display: none;
+
+        text-align: center;
+
+        padding: 45px 20px;
+
+        color: #666;
+
+        font-size: 14px;
+      }
+
+      /* =========================
+           EMPTY STATE
+        ========================= */
 
       .empty-state {
         text-align: center;
+
         padding: 75px 20px;
       }
 
       .empty-icon {
         width: 55px;
         height: 55px;
+
         border: 1px solid #333;
+
         border-radius: 12px;
+
         display: flex;
+
         align-items: center;
         justify-content: center;
+
         margin: 0 auto 18px;
+
         color: #777;
+
         font-size: 22px;
       }
 
       .empty-state h3 {
         font-size: 17px;
+
         margin-bottom: 8px;
       }
 
       .empty-state p {
         color: #666;
+
         font-size: 13px;
+
         margin-bottom: 20px;
       }
 
       /* =========================
-     RESPONSIVE
-  ========================= */
+           RESPONSIVE
+        ========================= */
 
       @media (max-width: 900px) {
         .sidebar {
@@ -459,33 +646,53 @@
 
         .main {
           margin-left: 210px;
+
           width: calc(100% - 210px);
-          padding: 35px 25px;
+
+          padding: 25px;
         }
       }
 
       @media (max-width: 700px) {
         .sidebar {
           position: relative;
+
           width: 100%;
+
           height: auto;
+
           border-right: none;
+
           border-bottom: 1px solid #222;
         }
 
         .main {
           margin-left: 0;
+
           width: 100%;
+
           padding: 30px 18px;
         }
 
         .top-section {
           align-items: flex-start;
+
           gap: 20px;
+
           flex-direction: column;
         }
 
+        .toolbar {
+          flex-direction: column;
+
+          align-items: stretch;
+        }
+
         .search-box {
+          width: 100%;
+        }
+
+        .status-filter select {
           width: 100%;
         }
 
@@ -502,8 +709,8 @@
 
   <body>
     <!-- =========================
-       SIDEBAR
-  ========================= -->
+         SIDEBAR
+    ========================= -->
 
     <aside class="sidebar">
       <div class="logo">Invoice<span>Flow</span></div>
@@ -573,10 +780,14 @@
     </aside>
 
     <!-- =========================
-       MAIN
-  ========================= -->
+         MAIN
+    ========================= -->
 
     <main class="main">
+      <!-- =========================
+             PAGE HEADER
+        ========================= -->
+
       <div class="top-section">
         <div class="page-title">
           <h1>Invoices</h1>
@@ -590,10 +801,12 @@
       </div>
 
       <!-- =========================
-         SEARCH
-    ========================= -->
+             SEARCH + STATUS FILTER
+        ========================= -->
 
       <div class="toolbar">
+        <!-- SEARCH -->
+
         <div class="search-box">
           <span class="search-icon"> ⌕ </span>
 
@@ -601,14 +814,32 @@
             type="text"
             id="invoiceSearch"
             placeholder="Search invoices..."
-            onkeyup="searchInvoices()"
+            autocomplete="off"
           />
+        </div>
+
+        <!-- STATUS FILTER -->
+
+        <div class="status-filter">
+          <select id="statusFilter">
+            <option value="ALL">All Status</option>
+
+            <option value="DRAFT">Draft</option>
+
+            <option value="SENT">Sent</option>
+
+            <option value="PAID">Paid</option>
+
+            <option value="OVERDUE">Overdue</option>
+
+            <option value="CANCELLED">Cancelled</option>
+          </select>
         </div>
       </div>
 
       <!-- =========================
-         INVOICE TABLE
-    ========================= -->
+             INVOICE TABLE
+        ========================= -->
 
       <div class="table-container">
         {% if invoices %}
@@ -635,7 +866,7 @@
           <tbody id="invoiceTable">
             {% for invoice in invoices %}
 
-            <tr>
+            <tr data-status="{{ invoice.status }}">
               <td class="invoice-number">{{ invoice.invoice_number }}</td>
 
               <td class="customer-name">{{ invoice.customer.name }}</td>
@@ -668,7 +899,15 @@
           </tbody>
         </table>
 
+        <!-- NO SEARCH/FILTER RESULTS -->
+
+        <div id="noResults" class="no-results">
+          No invoices match your search or status filter.
+        </div>
+
         {% else %}
+
+        <!-- EMPTY DATABASE STATE -->
 
         <div class="empty-state">
           <div class="empty-icon">▣</div>
@@ -686,11 +925,21 @@
       </div>
     </main>
 
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
     <script>
+      /* =========================
+           COMPANY MENU
+        ========================= */
+
       function toggleCompanyMenu() {
         const menu = document.getElementById("companyMenu");
 
-        menu.classList.toggle("show");
+        if (menu) {
+          menu.classList.toggle("show");
+        }
       }
 
       document.addEventListener("click", function (event) {
@@ -698,27 +947,86 @@
 
         const menu = document.getElementById("companyMenu");
 
-        if (switcher && !switcher.contains(event.target)) {
+        if (switcher && menu && !switcher.contains(event.target)) {
           menu.classList.remove("show");
         }
       });
 
-      function searchInvoices() {
-        const input = document.getElementById("invoiceSearch");
+      /* =========================
+           SEARCH + STATUS FILTER
+        ========================= */
 
-        const filter = input.value.toLowerCase();
+      function filterInvoices() {
+        const searchInput = document.getElementById("invoiceSearch");
 
-        const rows = document.querySelectorAll("#invoiceTable tr");
+        const statusFilter = document.getElementById("statusFilter");
+
+        const table = document.getElementById("invoiceTable");
+
+        const noResults = document.getElementById("noResults");
+
+        if (!searchInput || !statusFilter || !table) {
+          return;
+        }
+
+        const searchValue = searchInput.value.trim().toLowerCase();
+
+        const selectedStatus = statusFilter.value;
+
+        const rows = table.querySelectorAll("tr");
+
+        let visibleCount = 0;
 
         rows.forEach(function (row) {
-          const text = row.textContent.toLowerCase();
+          const rowText = row.textContent.toLowerCase();
 
-          if (text.includes(filter)) {
+          const invoiceStatus = row.dataset.status.toUpperCase();
+
+          const matchesSearch = rowText.includes(searchValue);
+
+          const matchesStatus =
+            selectedStatus === "ALL" || invoiceStatus === selectedStatus;
+
+          if (matchesSearch && matchesStatus) {
             row.style.display = "";
+
+            visibleCount++;
           } else {
             row.style.display = "none";
           }
         });
+
+        /* =========================
+               NO RESULTS MESSAGE
+            ========================= */
+
+        if (noResults) {
+          if (visibleCount === 0) {
+            noResults.style.display = "block";
+          } else {
+            noResults.style.display = "none";
+          }
+        }
+      }
+
+      /* =========================
+           SEARCH EVENT
+        ========================= */
+
+      const invoiceSearch = document.getElementById("invoiceSearch");
+
+      if (invoiceSearch) {
+        invoiceSearch.addEventListener("input", filterInvoices);
+      }
+
+      /* =========================
+           STATUS FILTER EVENT
+        ========================= */
+
+      const statusFilter = document.getElementById("statusFilter");
+
+      if (statusFilter) {
+        statusFilter.addEventListener("change", filterInvoices);
       }
     </script>
   </body>

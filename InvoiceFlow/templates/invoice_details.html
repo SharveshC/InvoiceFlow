@@ -37,6 +37,16 @@
         font-size: 32px;
       }
 
+      /* =========================
+         TOP ACTIONS
+      ========================= */
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
       .back-btn {
         color: #aaa;
         text-decoration: none;
@@ -48,6 +58,38 @@
       .back-btn:hover {
         background: #fff;
         color: #000;
+      }
+
+      .cancel-btn {
+        padding: 10px 16px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #111;
+        color: #ff6b6b;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .cancel-btn:hover {
+        background: #1a1a1a;
+        border-color: #ff6b6b;
+      }
+
+      .payment-btn {
+        color: #000;
+        background: #fff;
+        text-decoration: none;
+        border: 1px solid #fff;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .payment-btn:hover {
+        background: #ddd;
+        border-color: #ddd;
       }
 
       .card {
@@ -183,6 +225,11 @@
           flex-direction: column;
         }
 
+        .top-actions {
+          width: 100%;
+          flex-wrap: wrap;
+        }
+
         .card {
           overflow-x: auto;
         }
@@ -192,12 +239,39 @@
 
   <body>
     <main class="main">
+      <!-- TOP -->
+
       <div class="top">
         <div>
           <h1>Invoice {{ invoice.invoice_number }}</h1>
         </div>
 
-        <a href="{% url 'invoices' %}" class="back-btn"> ← Back to Invoices </a>
+        <div class="top-actions">
+          {% if invoice.status != "PAID" and invoice.status != "CANCELLED" %}
+
+          <a href="{% url 'record_payment' %}" class="payment-btn">
+            Record Payment
+          </a>
+
+          <form
+            method="POST"
+            action="{% url 'cancel_invoice' invoice.id %}"
+            style="display: inline"
+            onsubmit="
+              return confirm('Are you sure you want to cancel this invoice?');
+            "
+          >
+            {% csrf_token %}
+
+            <button type="submit" class="cancel-btn">Cancel Invoice</button>
+          </form>
+
+          {% endif %}
+
+          <a href="{% url 'invoices' %}" class="back-btn">
+            ← Back to Invoices
+          </a>
+        </div>
       </div>
 
       <!-- INVOICE INFORMATION -->
@@ -213,6 +287,7 @@
 
           <div class="info">
             <label>Status</label>
+
             <p>
               <span class="status"> {{ invoice.get_status_display }} </span>
             </p>
@@ -305,6 +380,8 @@
         <p class="empty">No invoice items found.</p>
 
         {% endif %}
+
+        <!-- TOTALS -->
 
         <div class="totals">
           <div class="total-row">

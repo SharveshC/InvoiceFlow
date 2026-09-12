@@ -6,7 +6,20 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 from .models import (
     Company,
@@ -79,33 +92,187 @@ def signup(request):
     return render(request, "signup.html")
 
 
+from datetime import date
+
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.shortcuts import render
+
+
 @login_required
 def dashboard(request):
+
+    # ==========================================
+    # USER'S COMPANIES
+    # ==========================================
 
     memberships = Membership.objects.filter(user=request.user).select_related("company")
 
     companies = [membership.company for membership in memberships]
+
+    # ==========================================
+    # CURRENT COMPANY
+    # ==========================================
 
     current_company_id = request.session.get("current_company_id")
 
     current_company = None
 
     if current_company_id:
+
         current_company = next(
-            (company for company in companies if company.id == current_company_id), None
+            (company for company in companies if company.id == current_company_id),
+            None,
         )
 
     if current_company is None and companies:
+
         current_company = companies[0]
+
         request.session["current_company_id"] = current_company.id
+
+    # ==========================================
+    # DEFAULT DASHBOARD VALUES
+    # ==========================================
+
+    total_revenue = 0
+
+    paid_invoices_count = 0
+
+    pending_amount = 0
+    pending_invoice_count = 0
+
+    overdue_amount = 0
+    overdue_invoice_count = 0
+
+    this_month_revenue = 0
+    this_month_paid_invoices = 0
+
+    recent_invoices = []
+
+    # ==========================================
+    # CURRENT COMPANY DATA
+    # ==========================================
+
+    if current_company:
+
+        today = date.today()
+
+        # ======================================
+        # COMPANY INVOICES
+        # ======================================
+
+        company_invoices = Invoice.objects.filter(company=current_company)
+
+        # ======================================
+        # TOTAL REVENUE
+        # ======================================
+
+        total_revenue = (
+            Payment.objects.filter(invoice__company=current_company).aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
+        )
+
+        # ======================================
+        # PAID INVOICES
+        # ======================================
+
+        paid_invoices_count = company_invoices.filter(status="PAID").count()
+
+        # ======================================
+        # THIS MONTH REVENUE
+        # ======================================
+
+        this_month_revenue = (
+            Payment.objects.filter(
+                invoice__company=current_company,
+                payment_date__year=today.year,
+                payment_date__month=today.month,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+
+        # ======================================
+        # PAID INVOICES THIS MONTH
+        # ======================================
+
+        this_month_paid_invoices = company_invoices.filter(
+            status="PAID",
+            updated_at__year=today.year,
+            updated_at__month=today.month,
+        ).count()
+
+        # ======================================
+        # PENDING + OVERDUE
+        # ======================================
+
+        unpaid_invoices = company_invoices.exclude(
+            status__in=[
+                "PAID",
+                "CANCELLED",
+            ]
+        )
+
+        for invoice in unpaid_invoices:
+
+            paid_amount = invoice.payments.aggregate(total=Sum("amount"))["total"] or 0
+
+            remaining_amount = invoice.total - paid_amount
+
+            if remaining_amount > 0:
+
+                pending_amount += remaining_amount
+
+                pending_invoice_count += 1
+
+                # ------------------------------
+                # OVERDUE
+                # ------------------------------
+
+                if invoice.due_date < today:
+
+                    overdue_amount += remaining_amount
+
+                    overdue_invoice_count += 1
+
+        # ======================================
+        # RECENT INVOICES
+        # ======================================
+
+        recent_invoices = company_invoices.select_related("customer").order_by(
+            "-created_at"
+        )[:5]
+
+    # ==========================================
+    # DASHBOARD CONTEXT
+    # ==========================================
+
+    context = {
+        # Company
+        "companies": companies,
+        "current_company": current_company,
+        # Revenue
+        "total_revenue": total_revenue,
+        "this_month_revenue": this_month_revenue,
+        # Paid
+        "paid_invoices_count": paid_invoices_count,
+        "this_month_paid_invoices": this_month_paid_invoices,
+        # Pending
+        "pending_amount": pending_amount,
+        "pending_invoice_count": pending_invoice_count,
+        # Overdue
+        "overdue_amount": overdue_amount,
+        "overdue_invoice_count": overdue_invoice_count,
+        # Recent invoices
+        "recent_invoices": recent_invoices,
+    }
 
     return render(
         request,
         "after_login.html",
-        {
-            "companies": companies,
-            "current_company": current_company,
-        },
+        context,
     )
 
 
@@ -561,25 +728,48 @@ def delete_product(request, product_id):
 @login_required
 def invoices(request):
 
-    current_company_id = request.session.get("current_company_id")
-
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
+    # =========================
+    # GET USER COMPANIES
+    # =========================
 
     memberships = Membership.objects.filter(user=request.user).select_related("company")
 
     companies = [membership.company for membership in memberships]
+
+    # =========================
+    # GET CURRENT COMPANY
+    # =========================
+
+    current_company_id = request.session.get("current_company_id")
+
+    current_company = None
+
+    if current_company_id:
+        current_company = next(
+            (company for company in companies if company.id == current_company_id),
+            None,
+        )
+
+    if current_company is None:
+        return redirect("dashboard")
+
+    # =========================
+    # UPDATE OVERDUE INVOICES
+    # =========================
+
+    today = date.today()
+
+    overdue_invoices = Invoice.objects.filter(
+        company=current_company,
+        status__in=["DRAFT", "SENT"],
+        due_date__lt=today,
+    )
+
+    overdue_invoices.update(status="OVERDUE")
+
+    # =========================
+    # GET INVOICES
+    # =========================
 
     invoices = (
         Invoice.objects.filter(company=current_company)
@@ -591,9 +781,9 @@ def invoices(request):
         request,
         "invoices.html",
         {
-            "invoices": invoices,
-            "current_company": current_company,
             "companies": companies,
+            "current_company": current_company,
+            "invoices": invoices,
         },
     )
 
@@ -1136,4 +1326,581 @@ def invoice_details(request, invoice_id):
             "paid_amount": paid_amount,
             "remaining_amount": remaining_amount,
         },
+    )
+
+
+@login_required
+def export_report(request):
+
+    # ==========================================
+    # USER'S COMPANIES
+    # ==========================================
+
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
+
+    companies = [membership.company for membership in memberships]
+
+    # ==========================================
+    # CURRENT COMPANY
+    # ==========================================
+
+    current_company_id = request.session.get("current_company_id")
+
+    current_company = None
+
+    if current_company_id:
+
+        current_company = next(
+            (company for company in companies if company.id == current_company_id),
+            None,
+        )
+
+    # If no valid company is selected,
+    # fall back to the user's first company.
+
+    if current_company is None and companies:
+
+        current_company = companies[0]
+
+        request.session["current_company_id"] = current_company.id
+
+    # ==========================================
+    # SAFETY CHECK
+    # ==========================================
+
+    if current_company is None:
+
+        return HttpResponse(
+            "No company found.",
+            status=400,
+        )
+
+    # ==========================================
+    # COMPANY INVOICES
+    # ==========================================
+
+    company_invoices = (
+        Invoice.objects.filter(company=current_company)
+        .select_related("customer")
+        .order_by("-created_at")
+    )
+
+    # ==========================================
+    # COMPANY PAYMENTS
+    # ==========================================
+
+    company_payments = (
+        Payment.objects.filter(invoice__company=current_company)
+        .select_related(
+            "invoice",
+            "invoice__customer",
+        )
+        .order_by(
+            "-payment_date",
+            "-created_at",
+        )
+    )
+
+    # ==========================================
+    # TOTAL REVENUE
+    # ==========================================
+
+    total_revenue = company_payments.aggregate(total=Sum("amount"))["total"] or Decimal(
+        "0.00"
+    )
+
+    # ==========================================
+    # PAID INVOICES
+    # ==========================================
+
+    paid_invoices_count = company_invoices.filter(status="PAID").count()
+
+    # ==========================================
+    # PENDING / OVERDUE
+    # ==========================================
+
+    pending_amount = Decimal("0.00")
+
+    overdue_amount = Decimal("0.00")
+
+    today = date.today()
+
+    unpaid_invoices = company_invoices.exclude(
+        status__in=[
+            "PAID",
+            "CANCELLED",
+        ]
+    )
+
+    for invoice in unpaid_invoices:
+
+        paid_amount = invoice.payments.aggregate(total=Sum("amount"))[
+            "total"
+        ] or Decimal("0.00")
+
+        remaining_amount = invoice.total - paid_amount
+
+        if remaining_amount > 0:
+
+            pending_amount += remaining_amount
+
+            if invoice.due_date < today:
+
+                overdue_amount += remaining_amount
+
+    # ==========================================
+    # PDF RESPONSE
+    # ==========================================
+
+    response = HttpResponse(content_type="application/pdf")
+
+    response["Content-Disposition"] = "attachment; " 'filename="invoiceflow_report.pdf"'
+
+    # ==========================================
+    # PDF DOCUMENT
+    # ==========================================
+
+    document = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=15 * mm,
+        leftMargin=15 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = styles["Title"]
+
+    heading_style = styles["Heading2"]
+
+    normal_style = styles["Normal"]
+
+    elements = []
+
+    # ==========================================
+    # REPORT HEADER
+    # ==========================================
+
+    elements.append(
+        Paragraph(
+            "InvoiceFlow",
+            title_style,
+        )
+    )
+
+    elements.append(
+        Paragraph(
+            "Financial Report",
+            heading_style,
+        )
+    )
+
+    elements.append(
+        Spacer(
+            1,
+            6 * mm,
+        )
+    )
+
+    elements.append(
+        Paragraph(
+            f"<b>Company:</b> " f"{current_company.name}",
+            normal_style,
+        )
+    )
+
+    elements.append(
+        Paragraph(
+            f"<b>Generated:</b> " f"{today.strftime('%d %b %Y')}",
+            normal_style,
+        )
+    )
+
+    elements.append(
+        Spacer(
+            1,
+            8 * mm,
+        )
+    )
+
+    # ==========================================
+    # SUMMARY
+    # ==========================================
+
+    elements.append(
+        Paragraph(
+            "Summary",
+            heading_style,
+        )
+    )
+
+    summary_data = [
+        [
+            "Metric",
+            "Value",
+        ],
+        [
+            "Total Revenue",
+            f"₹{total_revenue:,.2f}",
+        ],
+        [
+            "Paid Invoices",
+            str(paid_invoices_count),
+        ],
+        [
+            "Pending Amount",
+            f"₹{pending_amount:,.2f}",
+        ],
+        [
+            "Overdue Amount",
+            f"₹{overdue_amount:,.2f}",
+        ],
+    ]
+
+    summary_table = Table(
+        summary_data,
+        colWidths=[
+            80 * mm,
+            80 * mm,
+        ],
+    )
+
+    summary_table.setStyle(
+        TableStyle(
+            [
+                (
+                    "BACKGROUND",
+                    (0, 0),
+                    (-1, 0),
+                    colors.black,
+                ),
+                (
+                    "TEXTCOLOR",
+                    (0, 0),
+                    (-1, 0),
+                    colors.white,
+                ),
+                (
+                    "FONTNAME",
+                    (0, 0),
+                    (-1, 0),
+                    "Helvetica-Bold",
+                ),
+                (
+                    "GRID",
+                    (0, 0),
+                    (-1, -1),
+                    0.5,
+                    colors.grey,
+                ),
+                (
+                    "PADDING",
+                    (0, 0),
+                    (-1, -1),
+                    7,
+                ),
+            ]
+        )
+    )
+
+    elements.append(summary_table)
+
+    elements.append(
+        Spacer(
+            1,
+            10 * mm,
+        )
+    )
+
+    # ==========================================
+    # INVOICES
+    # ==========================================
+
+    elements.append(
+        Paragraph(
+            "Invoices",
+            heading_style,
+        )
+    )
+
+    invoice_data = [
+        [
+            "Invoice",
+            "Customer",
+            "Date",
+            "Amount",
+            "Status",
+        ]
+    ]
+
+    for invoice in company_invoices:
+
+        invoice_data.append(
+            [
+                invoice.invoice_number,
+                invoice.customer.name,
+                invoice.issue_date.strftime("%d %b %Y"),
+                f"₹{invoice.total:,.2f}",
+                invoice.get_status_display(),
+            ]
+        )
+
+    if len(invoice_data) == 1:
+
+        invoice_data.append(
+            [
+                "-",
+                "No invoices",
+                "-",
+                "-",
+                "-",
+            ]
+        )
+
+    invoice_table = Table(
+        invoice_data,
+        repeatRows=1,
+    )
+
+    invoice_table.setStyle(
+        TableStyle(
+            [
+                (
+                    "BACKGROUND",
+                    (0, 0),
+                    (-1, 0),
+                    colors.black,
+                ),
+                (
+                    "TEXTCOLOR",
+                    (0, 0),
+                    (-1, 0),
+                    colors.white,
+                ),
+                (
+                    "FONTNAME",
+                    (0, 0),
+                    (-1, 0),
+                    "Helvetica-Bold",
+                ),
+                (
+                    "GRID",
+                    (0, 0),
+                    (-1, -1),
+                    0.5,
+                    colors.grey,
+                ),
+                (
+                    "PADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+            ]
+        )
+    )
+
+    elements.append(invoice_table)
+
+    elements.append(
+        Spacer(
+            1,
+            10 * mm,
+        )
+    )
+
+    # ==========================================
+    # PAYMENTS
+    # ==========================================
+
+    elements.append(
+        Paragraph(
+            "Payments",
+            heading_style,
+        )
+    )
+
+    payment_data = [
+        [
+            "Invoice",
+            "Customer",
+            "Date",
+            "Method",
+            "Amount",
+        ]
+    ]
+
+    for payment in company_payments:
+
+        payment_data.append(
+            [
+                payment.invoice.invoice_number,
+                payment.invoice.customer.name,
+                payment.payment_date.strftime("%d %b %Y"),
+                payment.get_payment_method_display(),
+                f"₹{payment.amount:,.2f}",
+            ]
+        )
+
+    if len(payment_data) == 1:
+
+        payment_data.append(
+            [
+                "-",
+                "-",
+                "No payments",
+                "-",
+                "-",
+            ]
+        )
+
+    payment_table = Table(
+        payment_data,
+        repeatRows=1,
+    )
+
+    payment_table.setStyle(
+        TableStyle(
+            [
+                (
+                    "BACKGROUND",
+                    (0, 0),
+                    (-1, 0),
+                    colors.black,
+                ),
+                (
+                    "TEXTCOLOR",
+                    (0, 0),
+                    (-1, 0),
+                    colors.white,
+                ),
+                (
+                    "FONTNAME",
+                    (0, 0),
+                    (-1, 0),
+                    "Helvetica-Bold",
+                ),
+                (
+                    "GRID",
+                    (0, 0),
+                    (-1, -1),
+                    0.5,
+                    colors.grey,
+                ),
+                (
+                    "PADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+            ]
+        )
+    )
+
+    elements.append(payment_table)
+
+    # ==========================================
+    # BUILD PDF
+    # ==========================================
+
+    document.build(elements)
+
+    return response
+
+
+@login_required
+def cancel_invoice(request, invoice_id):
+
+    # ==========================================
+    # ONLY POST REQUESTS ALLOWED
+    # ==========================================
+
+    if request.method != "POST":
+        return redirect("invoice_details", invoice_id=invoice_id)
+
+    # ==========================================
+    # GET CURRENT COMPANY
+    # ==========================================
+
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
+
+    companies = [membership.company for membership in memberships]
+
+    current_company_id = request.session.get("current_company_id")
+
+    current_company = None
+
+    if current_company_id:
+
+        current_company = next(
+            (company for company in companies if company.id == current_company_id),
+            None,
+        )
+
+    # ==========================================
+    # NO COMPANY
+    # ==========================================
+
+    if current_company is None:
+
+        return redirect("dashboard")
+
+    # ==========================================
+    # GET INVOICE
+    # ==========================================
+
+    invoice = Invoice.objects.filter(
+        id=invoice_id,
+        company=current_company,
+    ).first()
+
+    if invoice is None:
+
+        return redirect("invoices")
+
+    # ==========================================
+    # BUSINESS RULES
+    # ==========================================
+
+    # Already paid invoices cannot be cancelled.
+
+    if invoice.status == "PAID":
+
+        return redirect(
+            "invoice_details",
+            invoice_id=invoice.id,
+        )
+
+    # Already cancelled invoices cannot be
+    # cancelled again.
+
+    if invoice.status == "CANCELLED":
+
+        return redirect(
+            "invoice_details",
+            invoice_id=invoice.id,
+        )
+
+    # ==========================================
+    # CANCEL INVOICE
+    # ==========================================
+
+    invoice.status = "CANCELLED"
+
+    invoice.save(
+        update_fields=[
+            "status",
+            "updated_at",
+        ]
+    )
+
+    # ==========================================
+    # RETURN TO DETAILS
+    # ==========================================
+
+    return redirect(
+        "invoice_details",
+        invoice_id=invoice.id,
     )

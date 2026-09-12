@@ -30,4 +30,14 @@ urlpatterns = [
         views.invoice_details,
         name="invoice_details",
     ),
+    path(
+        "reports/export/",
+        views.export_report,
+        name="export_report",
+    ),
+    path(
+        "invoices/<int:invoice_id>/cancel/",
+        views.cancel_invoice,
+        name="cancel_invoice",
+    ),
 ]
