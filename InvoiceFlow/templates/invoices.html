@@ -8,6 +8,15 @@
     <title>Invoices - InvoiceFlow</title>
 
     <style>
+      /* =========================
+     GLOBAL
+  ========================= */
+
+      html {
+        overflow-y: scroll;
+        scrollbar-gutter: stable;
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
@@ -19,11 +28,12 @@
         background: #000;
         color: #fff;
         min-height: 100vh;
+        overflow-x: hidden;
       }
 
       /* =========================
-       SIDEBAR
-    ========================= */
+     SIDEBAR
+  ========================= */
 
       .sidebar {
         position: fixed;
@@ -33,7 +43,7 @@
         height: 100vh;
         background: #050505;
         border-right: 1px solid #222;
-        padding: 30px 20px;
+        padding: 28px 18px;
       }
 
       .logo {
@@ -56,8 +66,8 @@
       }
 
       /* =========================
-       COMPANY SWITCHER
-    ========================= */
+     COMPANY SWITCHER
+  ========================= */
 
       .company-switcher {
         position: relative;
@@ -156,8 +166,8 @@
       }
 
       /* =========================
-       NAVIGATION
-    ========================= */
+     NAVIGATION
+  ========================= */
 
       .nav {
         display: flex;
@@ -171,7 +181,9 @@
         padding: 13px 14px;
         border-radius: 9px;
         font-size: 15px;
-        transition: 0.2s;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
       }
 
       .nav a:hover {
@@ -185,14 +197,19 @@
       }
 
       /* =========================
-       MAIN
-    ========================= */
+     MAIN
+  ========================= */
 
       .main {
         margin-left: 250px;
-        padding: 45px 50px;
         min-height: 100vh;
+        padding: 35px 45px;
+        width: calc(100% - 250px);
       }
+
+      /* =========================
+     TOP SECTION
+  ========================= */
 
       .top-section {
         display: flex;
@@ -202,7 +219,8 @@
       }
 
       .page-title h1 {
-        font-size: 34px;
+        font-size: 30px;
+        letter-spacing: -1px;
         margin-bottom: 8px;
       }
 
@@ -228,8 +246,8 @@
       }
 
       /* =========================
-       TOOLBAR
-    ========================= */
+     TOOLBAR
+  ========================= */
 
       .toolbar {
         display: flex;
@@ -267,8 +285,8 @@
       }
 
       /* =========================
-       TABLE
-    ========================= */
+     TABLE
+  ========================= */
 
       .table-container {
         background: #070707;
@@ -323,8 +341,8 @@
       }
 
       /* =========================
-       STATUS
-    ========================= */
+     STATUS
+  ========================= */
 
       .status {
         display: inline-block;
@@ -360,8 +378,8 @@
       }
 
       /* =========================
-       ACTIONS
-    ========================= */
+     ACTIONS
+  ========================= */
 
       .actions-header {
         text-align: center !important;
@@ -387,7 +405,9 @@
         font-size: 16px;
         cursor: pointer;
         text-decoration: none;
-        transition: 0.2s;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
       }
 
       .icon-btn:hover {
@@ -396,8 +416,8 @@
       }
 
       /* =========================
-       EMPTY STATE
-    ========================= */
+     EMPTY STATE
+  ========================= */
 
       .empty-state {
         text-align: center;
@@ -429,8 +449,8 @@
       }
 
       /* =========================
-       RESPONSIVE
-    ========================= */
+     RESPONSIVE
+  ========================= */
 
       @media (max-width: 900px) {
         .sidebar {
@@ -439,6 +459,7 @@
 
         .main {
           margin-left: 210px;
+          width: calc(100% - 210px);
           padding: 35px 25px;
         }
       }
@@ -454,6 +475,7 @@
 
         .main {
           margin-left: 0;
+          width: 100%;
           padding: 30px 18px;
         }
 
@@ -562,7 +584,9 @@
           <p>Create and manage your invoices.</p>
         </div>
 
-        <a href="{% url 'create_invoice' %}" class="create-btn"> ＋ Create Invoice </a>
+        <a href="{% url 'create_invoice' %}" class="create-btn">
+          ＋ Create Invoice
+        </a>
       </div>
 
       <!-- =========================
@@ -653,7 +677,9 @@
 
           <p>Create your first invoice to get started.</p>
 
-          <a href="{% url 'create_invoice' %}" class="create-btn"> ＋ Create Invoice </a>
+          <a href="{% url 'create_invoice' %}" class="create-btn">
+            ＋ Create Invoice
+          </a>
         </div>
 
         {% endif %}
