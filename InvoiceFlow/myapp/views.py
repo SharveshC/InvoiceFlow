@@ -1082,7 +1082,6 @@ def record_payment(request):
     )
 
 
-
 @login_required
 def invoice_details(request, invoice_id):
 
@@ -1092,10 +1091,7 @@ def invoice_details(request, invoice_id):
         return redirect("dashboard")
 
     membership = (
-        Membership.objects.filter(
-            user=request.user,
-            company_id=current_company_id
-        )
+        Membership.objects.filter(user=request.user, company_id=current_company_id)
         .select_related("company")
         .first()
     )
@@ -1106,45 +1102,27 @@ def invoice_details(request, invoice_id):
     current_company = membership.company
 
     invoice = (
-        Invoice.objects
-        .select_related("customer")
-        .filter(
-            id=invoice_id,
-            company=current_company
-        )
+        Invoice.objects.select_related("customer")
+        .filter(id=invoice_id, company=current_company)
         .first()
     )
 
     if invoice is None:
         return redirect("invoices")
 
-    items = (
-        InvoiceItem.objects
-        .filter(invoice=invoice)
-        .select_related("product")
+    items = InvoiceItem.objects.filter(invoice=invoice).select_related("product")
+
+    payments = Payment.objects.filter(invoice=invoice).order_by(
+        "-payment_date", "-created_at"
     )
 
-    payments = (
-        Payment.objects
-        .filter(invoice=invoice)
-        .order_by("-payment_date", "-created_at")
-    )
-
-    paid_amount = (
-        payments.aggregate(total=Sum("amount"))["total"]
-        or Decimal("0.00")
-    )
+    paid_amount = payments.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
 
     remaining_amount = invoice.total - paid_amount
 
-    memberships = Membership.objects.filter(
-        user=request.user
-    ).select_related("company")
+    memberships = Membership.objects.filter(user=request.user).select_related("company")
 
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    companies = [membership.company for membership in memberships]
 
     return render(
         request,
