@@ -1110,7 +1110,10 @@ def record_payment(request):
         return redirect("dashboard")
 
     membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
+        Membership.objects.filter(
+            user=request.user,
+            company_id=current_company_id
+        )
         .select_related("company")
         .first()
     )
@@ -1120,15 +1123,54 @@ def record_payment(request):
 
     current_company = membership.company
 
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
+    memberships = (
+        Membership.objects
+        .filter(user=request.user)
+        .select_related("company")
+    )
 
-    companies = [membership.company for membership in memberships]
+    companies = [
+        membership.company
+        for membership in memberships
+    ]
+
+    # =========================
+    # GET ALL INVOICES
+    # =========================
 
     invoices = (
-        Invoice.objects.filter(company=current_company)
+        Invoice.objects
+        .filter(company=current_company)
         .select_related("customer")
+        .annotate(
+            paid_amount=Sum("payments__amount")
+        )
         .order_by("-created_at")
     )
+
+    # =========================
+    # GET INVOICE FROM URL
+    # =========================
+
+    selected_invoice_id = request.GET.get("invoice_id")
+
+    selected_invoice = None
+
+    if selected_invoice_id:
+
+        selected_invoice = (
+            Invoice.objects
+            .filter(
+                id=selected_invoice_id,
+                company=current_company,
+            )
+            .select_related("customer")
+            .first()
+        )
+
+    # =========================
+    # POST
+    # =========================
 
     if request.method == "POST":
 
@@ -1138,9 +1180,16 @@ def record_payment(request):
         payment_date = request.POST.get("payment_date")
         notes = request.POST.get("notes")
 
+        # =========================
+        # VALIDATE PAYMENT AMOUNT
+        # =========================
+
         try:
+
             amount = Decimal(amount_text)
+
         except (InvalidOperation, TypeError):
+
             return render(
                 request,
                 "record_payment.html",
@@ -1148,11 +1197,14 @@ def record_payment(request):
                     "current_company": current_company,
                     "companies": companies,
                     "invoices": invoices,
+                    "selected_invoice": selected_invoice,
+                    "selected_invoice_id": selected_invoice_id,
                     "error": "Enter a valid payment amount.",
                 },
             )
 
         if amount <= 0:
+
             return render(
                 request,
                 "record_payment.html",
@@ -1160,13 +1212,24 @@ def record_payment(request):
                     "current_company": current_company,
                     "companies": companies,
                     "invoices": invoices,
+                    "selected_invoice": selected_invoice,
+                    "selected_invoice_id": selected_invoice_id,
                     "error": "Payment amount must be greater than zero.",
                 },
             )
 
+        # =========================
+        # VALIDATE PAYMENT DATE
+        # =========================
+
         try:
-            payment_date_value = date.fromisoformat(payment_date)
+
+            payment_date_value = date.fromisoformat(
+                payment_date
+            )
+
         except (ValueError, TypeError):
+
             return render(
                 request,
                 "record_payment.html",
@@ -1174,19 +1237,34 @@ def record_payment(request):
                     "current_company": current_company,
                     "companies": companies,
                     "invoices": invoices,
+                    "selected_invoice": selected_invoice,
+                    "selected_invoice_id": selected_invoice_id,
                     "error": "Enter a valid payment date.",
                 },
             )
 
+        # =========================
+        # TRANSACTION
+        # =========================
+
         with transaction.atomic():
 
             invoice = (
-                Invoice.objects.select_for_update()
-                .filter(id=invoice_id, company=current_company)
+                Invoice.objects
+                .select_for_update()
+                .filter(
+                    id=invoice_id,
+                    company=current_company,
+                )
                 .first()
             )
 
+            # =========================
+            # INVALID INVOICE
+            # =========================
+
             if invoice is None:
+
                 return render(
                     request,
                     "record_payment.html",
@@ -1194,11 +1272,18 @@ def record_payment(request):
                         "current_company": current_company,
                         "companies": companies,
                         "invoices": invoices,
+                        "selected_invoice": selected_invoice,
+                        "selected_invoice_id": selected_invoice_id,
                         "error": "Invalid invoice selected.",
                     },
                 )
 
+            # =========================
+            # CANCELLED INVOICE
+            # =========================
+
             if invoice.status == "CANCELLED":
+
                 return render(
                     request,
                     "record_payment.html",
@@ -1206,17 +1291,41 @@ def record_payment(request):
                         "current_company": current_company,
                         "companies": companies,
                         "invoices": invoices,
-                        "error": "Payment cannot be recorded for a cancelled invoice.",
+                        "selected_invoice": selected_invoice,
+                        "selected_invoice_id": selected_invoice_id,
+                        "error": (
+                            "Payment cannot be recorded "
+                            "for a cancelled invoice."
+                        ),
                     },
                 )
 
-            paid_amount = invoice.payments.aggregate(total=Sum("amount"))[
-                "total"
-            ] or Decimal("0.00")
+            # =========================
+            # CALCULATE ALREADY PAID
+            # =========================
 
-            remaining_amount = invoice.total - paid_amount
+            paid_amount = (
+                invoice.payments
+                .aggregate(
+                    total=Sum("amount")
+                )["total"]
+                or Decimal("0.00")
+            )
+
+            # =========================
+            # CALCULATE REMAINING
+            # =========================
+
+            remaining_amount = (
+                invoice.total - paid_amount
+            )
+
+            # =========================
+            # ALREADY FULLY PAID
+            # =========================
 
             if remaining_amount <= 0:
+
                 return render(
                     request,
                     "record_payment.html",
@@ -1224,11 +1333,21 @@ def record_payment(request):
                         "current_company": current_company,
                         "companies": companies,
                         "invoices": invoices,
-                        "error": "This invoice has already been fully paid.",
+                        "selected_invoice": selected_invoice,
+                        "selected_invoice_id": selected_invoice_id,
+                        "error": (
+                            "This invoice has already "
+                            "been fully paid."
+                        ),
                     },
                 )
 
+            # =========================
+            # PREVENT OVERPAYMENT
+            # =========================
+
             if amount > remaining_amount:
+
                 return render(
                     request,
                     "record_payment.html",
@@ -1236,9 +1355,19 @@ def record_payment(request):
                         "current_company": current_company,
                         "companies": companies,
                         "invoices": invoices,
-                        "error": f"Payment cannot exceed the remaining balance of ₹{remaining_amount}.",
+                        "selected_invoice": selected_invoice,
+                        "selected_invoice_id": selected_invoice_id,
+                        "error": (
+                            f"Payment cannot exceed "
+                            f"the remaining balance of "
+                            f"₹{remaining_amount}."
+                        ),
                     },
                 )
+
+            # =========================
+            # CREATE PAYMENT
+            # =========================
 
             Payment.objects.create(
                 invoice=invoice,
@@ -1248,18 +1377,42 @@ def record_payment(request):
                 notes=notes,
             )
 
-            new_paid_amount = paid_amount + amount
+            # =========================
+            # UPDATE INVOICE STATUS
+            # =========================
+
+            new_paid_amount = (
+                paid_amount + amount
+            )
 
             if new_paid_amount >= invoice.total:
+
                 invoice.status = "PAID"
+
             elif invoice.due_date < date.today():
+
                 invoice.status = "OVERDUE"
+
             else:
+
                 invoice.status = "SENT"
 
-            invoice.save(update_fields=["status", "updated_at"])
+            invoice.save(
+                update_fields=[
+                    "status",
+                    "updated_at"
+                ]
+            )
+
+        # =========================
+        # SUCCESS
+        # =========================
 
         return redirect("payments")
+
+    # =========================
+    # GET
+    # =========================
 
     return render(
         request,
@@ -1268,6 +1421,8 @@ def record_payment(request):
             "current_company": current_company,
             "companies": companies,
             "invoices": invoices,
+            "selected_invoice": selected_invoice,
+            "selected_invoice_id": selected_invoice_id,
         },
     )
 

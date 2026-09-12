@@ -249,7 +249,10 @@
         <div class="top-actions">
           {% if invoice.status != "PAID" and invoice.status != "CANCELLED" %}
 
-          <a href="{% url 'record_payment' %}" class="payment-btn">
+          <a
+            href="{% url 'record_payment' %}?invoice_id={{ invoice.id }}"
+            class="payment-btn"
+          >
             Record Payment
           </a>
 
