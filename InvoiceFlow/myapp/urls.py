@@ -40,4 +40,9 @@ urlpatterns = [
         views.cancel_invoice,
         name="cancel_invoice",
     ),
+    path(
+    "invoices/<int:invoice_id>/pdf/",
+    views.generate_invoice_pdf,
+    name="generate_invoice_pdf",
+),
 ]

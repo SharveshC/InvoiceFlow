@@ -86,6 +86,22 @@
         font-size: 13px;
         font-weight: 600;
       }
+      
+      .pdf-btn {
+  color: #000;
+  background: #fff;
+  text-decoration: none;
+  border: 1px solid #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pdf-btn:hover {
+  background: #ddd;
+  border-color: #ddd;
+}
 
       .payment-btn:hover {
         background: #ddd;
@@ -247,6 +263,13 @@
         </div>
 
         <div class="top-actions">
+              <a
+        href="{% url 'generate_invoice_pdf' invoice.id %}"
+        class="pdf-btn"
+    >
+        Download PDF
+    </a>
+
           {% if invoice.status != "PAID" and invoice.status != "CANCELLED" %}
 
           <a
@@ -255,6 +278,8 @@
           >
             Record Payment
           </a>
+
+          
 
           <form
             method="POST"
