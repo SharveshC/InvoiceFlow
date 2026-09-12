@@ -752,10 +752,14 @@
           <h1>Dashboard</h1>
 
           <p>
-            Welcome back, {{
-            request.user.first_name|default:request.user.username }}. Manage
-            your invoices and payments.
-          </p>
+    Welcome back,
+    {% if request.user.first_name %}
+        {{ request.user.first_name|capfirst }}.
+    {% else %}
+        {{ request.user.username|capfirst }}.
+    {% endif %}
+    Manage your invoices and payments.
+</p>
         </div>
 
         <div class="topbar-actions">
