@@ -1,6 +1,9 @@
 from decimal import Decimal, InvalidOperation
 from datetime import date
 
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase.pdfmetrics import stringWidth
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -1482,7 +1485,513 @@ def invoice_details(request, invoice_id):
             "remaining_amount": remaining_amount,
         },
     )
+    
 
+@login_required
+def generate_invoice_pdf(request, invoice_id):
+
+    current_company_id = request.session.get("current_company_id")
+
+    if not current_company_id:
+        return redirect("dashboard")
+
+    membership = (
+        Membership.objects.filter(
+            user=request.user,
+            company_id=current_company_id
+        )
+        .select_related("company")
+        .first()
+    )
+
+    if membership is None:
+        return redirect("dashboard")
+
+    current_company = membership.company
+
+    # =========================
+    # GET INVOICE
+    # =========================
+
+    invoice = (
+        Invoice.objects
+        .select_related("customer")
+        .filter(
+            id=invoice_id,
+            company=current_company
+        )
+        .first()
+    )
+
+    if invoice is None:
+        return redirect("invoices")
+
+    # =========================
+    # GET INVOICE ITEMS
+    # =========================
+
+    items = (
+        InvoiceItem.objects
+        .filter(invoice=invoice)
+        .select_related("product")
+    )
+
+    # =========================
+    # GET PAYMENTS
+    # =========================
+
+    payments = Payment.objects.filter(
+        invoice=invoice
+    ).order_by(
+        "-payment_date",
+        "-created_at"
+    )
+
+    paid_amount = (
+        payments.aggregate(total=Sum("amount"))["total"]
+        or Decimal("0.00")
+    )
+
+    remaining_amount = invoice.total - paid_amount
+
+    # =========================
+    # CREATE PDF RESPONSE
+    # =========================
+
+    response = HttpResponse(
+        content_type="application/pdf"
+    )
+
+    response["Content-Disposition"] = (
+        f'attachment; filename="{invoice.invoice_number}.pdf"'
+    )
+
+    # =========================
+    # CREATE PDF
+    # =========================
+
+    pdf = canvas.Canvas(
+        response,
+        pagesize=A4
+    )
+
+    width, height = A4
+
+    # =========================
+    # TITLE
+    # =========================
+
+    y = height - 50
+
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.drawString(
+        50,
+        y,
+        "INVOICE"
+    )
+
+    # =========================
+    # COMPANY DETAILS
+    # =========================
+
+    y -= 35
+
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(
+        50,
+        y,
+        current_company.name
+    )
+
+    y -= 18
+
+    pdf.setFont("Helvetica", 10)
+
+    if current_company.email:
+        pdf.drawString(
+            50,
+            y,
+            f"Email: {current_company.email}"
+        )
+        y -= 15
+
+    if current_company.phone:
+        pdf.drawString(
+            50,
+            y,
+            f"Phone: {current_company.phone}"
+        )
+        y -= 15
+
+    if current_company.address:
+        pdf.drawString(
+            50,
+            y,
+            f"Address: {current_company.address}"
+        )
+        y -= 15
+
+    if current_company.gst_number:
+        pdf.drawString(
+            50,
+            y,
+            f"GST: {current_company.gst_number}"
+        )
+        y -= 15
+
+    # =========================
+    # INVOICE INFORMATION
+    # =========================
+
+    y -= 20
+
+    pdf.setFont("Helvetica-Bold", 11)
+
+    pdf.drawString(
+        50,
+        y,
+        f"Invoice Number: {invoice.invoice_number}"
+    )
+
+    pdf.drawString(
+        350,
+        y,
+        f"Status: {invoice.get_status_display()}"
+    )
+
+    y -= 18
+
+    pdf.setFont("Helvetica", 10)
+
+    pdf.drawString(
+        50,
+        y,
+        f"Issue Date: {invoice.issue_date}"
+    )
+
+    pdf.drawString(
+        350,
+        y,
+        f"Due Date: {invoice.due_date}"
+    )
+
+    # =========================
+    # CUSTOMER
+    # =========================
+
+    y -= 35
+
+    pdf.setFont("Helvetica-Bold", 12)
+
+    pdf.drawString(
+        50,
+        y,
+        "Bill To"
+    )
+
+    y -= 18
+
+    pdf.setFont("Helvetica", 10)
+
+    pdf.drawString(
+        50,
+        y,
+        invoice.customer.name
+    )
+
+    y -= 15
+
+    if invoice.customer.email:
+        pdf.drawString(
+            50,
+            y,
+            f"Email: {invoice.customer.email}"
+        )
+        y -= 15
+
+    if invoice.customer.phone:
+        pdf.drawString(
+            50,
+            y,
+            f"Phone: {invoice.customer.phone}"
+        )
+        y -= 15
+
+    if invoice.customer.address:
+        pdf.drawString(
+            50,
+            y,
+            f"Address: {invoice.customer.address}"
+        )
+        y -= 15
+
+    if invoice.customer.gst_number:
+        pdf.drawString(
+            50,
+            y,
+            f"GST: {invoice.customer.gst_number}"
+        )
+        y -= 15
+
+    # =========================
+    # ITEM TABLE HEADER
+    # =========================
+
+    y -= 25
+
+    pdf.setFont("Helvetica-Bold", 10)
+
+    pdf.drawString(50, y, "Product")
+    pdf.drawString(270, y, "Qty")
+    pdf.drawString(320, y, "Unit Price")
+    pdf.drawString(400, y, "Tax")
+    pdf.drawString(455, y, "Total")
+
+    y -= 8
+
+    pdf.line(
+        50,
+        y,
+        545,
+        y
+    )
+
+    y -= 18
+
+    # =========================
+    # ITEMS
+    # =========================
+
+    pdf.setFont("Helvetica", 9)
+
+    for item in items:
+
+        product_name = (
+            item.product.name
+            if item.product
+            else "Product"
+        )
+
+        quantity = item.quantity
+        unit_price = item.unit_price
+        tax = item.tax
+        line_total = item.line_total
+
+        pdf.drawString(
+            50,
+            y,
+            str(product_name)[:32]
+        )
+
+        pdf.drawRightString(
+            300,
+            y,
+            str(quantity)
+        )
+
+        pdf.drawRightString(
+            385,
+            y,
+            f"{unit_price:.2f}"
+        )
+
+        pdf.drawRightString(
+            440,
+            y,
+            f"{tax:.2f}%"
+        )
+
+        pdf.drawRightString(
+            545,
+            y,
+            f"{line_total:.2f}"
+        )
+
+        y -= 18
+
+        # Start a new page if necessary
+        if y < 100:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont("Helvetica", 9)
+
+    # =========================
+    # TOTALS
+    # =========================
+
+    y -= 15
+
+    pdf.line(
+        350,
+        y,
+        545,
+        y
+    )
+
+    y -= 20
+
+    pdf.setFont("Helvetica", 10)
+
+    pdf.drawString(
+        350,
+        y,
+        "Subtotal:"
+    )
+
+    pdf.drawRightString(
+        545,
+        y,
+        f"{invoice.subtotal:.2f}"
+    )
+
+    y -= 18
+
+    pdf.drawString(
+        350,
+        y,
+        "Tax:"
+    )
+
+    pdf.drawRightString(
+        545,
+        y,
+        f"{invoice.tax_amount:.2f}"
+    )
+
+    y -= 18
+
+    pdf.drawString(
+        350,
+        y,
+        "Discount:"
+    )
+
+    pdf.drawRightString(
+        545,
+        y,
+        f"{invoice.discount_amount:.2f}"
+    )
+
+    y -= 22
+
+    pdf.setFont("Helvetica-Bold", 12)
+
+    pdf.drawString(
+        350,
+        y,
+        "Grand Total:"
+    )
+
+    pdf.drawRightString(
+        545,
+        y,
+        f"{invoice.total:.2f}"
+    )
+
+    # =========================
+    # PAYMENT SUMMARY
+    # =========================
+
+    y -= 35
+
+    pdf.setFont("Helvetica-Bold", 11)
+
+    pdf.drawString(
+        50,
+        y,
+        "Payment Summary"
+    )
+
+    y -= 18
+
+    pdf.setFont("Helvetica", 10)
+
+    pdf.drawString(
+        50,
+        y,
+        "Amount Paid:"
+    )
+
+    pdf.drawRightString(
+        200,
+        y,
+        f"{paid_amount:.2f}"
+    )
+
+    y -= 18
+
+    pdf.drawString(
+        50,
+        y,
+        "Balance:"
+    )
+
+    pdf.drawRightString(
+        200,
+        y,
+        f"{remaining_amount:.2f}"
+    )
+
+    # =========================
+    # NOTES
+    # =========================
+
+    if invoice.notes:
+
+        y -= 35
+
+        pdf.setFont("Helvetica-Bold", 11)
+
+        pdf.drawString(
+            50,
+            y,
+            "Notes"
+        )
+
+        y -= 18
+
+        pdf.setFont("Helvetica", 10)
+
+        # Keep notes reasonably short for now
+        notes = str(invoice.notes)
+
+        for line in notes.splitlines():
+
+            pdf.drawString(
+                50,
+                y,
+                line[:90]
+            )
+
+            y -= 15
+
+            if y < 50:
+                pdf.showPage()
+                y = height - 50
+                pdf.setFont("Helvetica", 10)
+
+    # =========================
+    # FOOTER
+    # =========================
+
+    pdf.setFont(
+        "Helvetica",
+        8
+    )
+
+    pdf.drawCentredString(
+        width / 2,
+        30,
+        f"Generated by InvoiceFlow • {invoice.invoice_number}"
+    )
+
+    # =========================
+    # FINISH PDF
+    # =========================
+
+    pdf.save()
+
+    return response    
 
 @login_required
 def export_report(request):

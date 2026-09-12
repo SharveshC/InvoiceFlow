@@ -458,6 +458,16 @@
         font-weight: 600;
       }
 
+      .invoice-link {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.invoice-link:hover {
+    text-decoration: underline;
+}
+
       .client {
         color: #aaa;
       }
@@ -929,7 +939,12 @@
                 <tr>
 
                     <td class="invoice-number">
-    {{ invoice.invoice_number }}
+    <a
+        href="{% url 'invoice_details' invoice.id %}"
+        class="invoice-link"
+    >
+        {{ invoice.invoice_number }}
+    </a>
 </td>
 
 
