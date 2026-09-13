@@ -2,7 +2,7 @@
 
 ## 💡 Why InvoiceFlow?
 
-InvoiceFlow is a comprehensive, multi-tenant Django-based application designed for B2B SaaS invoicing. It was built to eliminate the hassle of managing multiple companies, clients, products, invoices, and payments by providing a unified, centralized dashboard for businesses of all sizes.
+InvoiceFlow is a multi-tenant invoice management web application built with Django and PostgreSQL. It provides company-scoped customer, product, invoice, and payment management, along with dashboard analytics and PDF invoice generation.
 
 ![InvoiceFlow Banner](https://img.shields.io/badge/InvoiceFlow-B2B%20SaaS%20Invoicing-blue?style=for-the-badge&logo=django)
 
@@ -36,8 +36,8 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Python 3** - Core programming language
-- **Django 5.x** - High-level Python Web framework
+- **Python** - Core programming language
+- **Django** - High-level Python Web framework
 - **PostgreSQL** - Primary robust relational database
 - **ReportLab** - PDF generation engine
 
@@ -98,7 +98,6 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
    python manage.py runserver
    ```
    
-   The app will be available at `http://localhost:8000/`
 
 ## 🎮 Usage
 
@@ -173,7 +172,3 @@ InvoiceFlow/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 Contributors
-
-- **Sharvesh C**  
-  GitHub: [@SharveshC](https://github.com/SharveshC)
