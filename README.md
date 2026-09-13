@@ -6,6 +6,26 @@ InvoiceFlow is a multi-tenant invoice management web application built with Djan
 
 ![InvoiceFlow Banner](https://img.shields.io/badge/InvoiceFlow-B2B%20SaaS%20Invoicing-blue?style=for-the-badge&logo=django)
 
+# 📸 Preview
+
+### 📊 Dashboard
+![Dashboard](InvoiceFlow/assets/dashboard.png)
+
+### 👥 Clients
+![Clients](InvoiceFlow/assets/clients.png)
+
+### 📦 Products
+![Products](InvoiceFlow/assets/products.png)
+
+### 🧾 Creating Invoice
+![Creating Invoice](InvoiceFlow/assets/Creating_Invoice.png)
+
+### 📄 Invoice View
+![Invoice View](InvoiceFlow/assets/Invoice.png)
+
+### 💳 Payments
+![Payments](InvoiceFlow/assets/payments.png)
+
 ## ✨ Features
 
 ### 🎯 Core Features
