@@ -125,20 +125,9 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 
 ## 🏗️ Architecture & Codebase Details
 
-### Entity-Relationship Diagram
+### 📊 System Architecture
 
-```mermaid
-erDiagram
-    USER ||--o{ MEMBERSHIP : has
-    COMPANY ||--o{ MEMBERSHIP : includes
-    COMPANY ||--o{ CUSTOMER : has
-    COMPANY ||--o{ PRODUCT : has
-    COMPANY ||--o{ INVOICE : issues
-    CUSTOMER ||--o{ INVOICE : receives
-    INVOICE ||--o{ INVOICE_ITEM : contains
-    PRODUCT ||--o{ INVOICE_ITEM : included_in
-    INVOICE ||--o{ PAYMENT : has
-```
+[![Architecture Diagram](https://gitdiagram.com/SharveshC/InvoiceFlow/graph.svg)](https://gitdiagram.com/SharveshC/InvoiceFlow)
 
 ### 📁 Project Structure
 
