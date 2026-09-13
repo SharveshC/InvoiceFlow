@@ -81,7 +81,7 @@ InvoiceFlow is a multi-tenant invoice management web application built with Djan
    cd InvoiceFlow
    ```
 
-2. **Create a Virtual Environment**
+2. **Create a Virtual Environment** (in the repository root)
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
@@ -93,7 +93,7 @@ InvoiceFlow is a multi-tenant invoice management web application built with Djan
    ```
 
 4. **Configure Environment Variables**
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the repository root directory:
    ```env
    SECRET_KEY=your-django-secret-key
    DB_NAME=invoiceflow
@@ -103,21 +103,27 @@ InvoiceFlow is a multi-tenant invoice management web application built with Djan
    DB_PORT=5432
    ```
 
-5. **Run Database Migrations**
+5. **Navigate to the Django Project**
+   ```bash
+   cd InvoiceFlow
+   ```
+
+6. **Run Database Migrations**
    ```bash
    python manage.py migrate
    ```
 
-6. **Create a Superuser (Optional)**
+7. **Create a Superuser (Optional)**
    ```bash
    python manage.py createsuperuser
    ```
 
-7. **Run Development Server**
+8. **Run Development Server**
    ```bash
    python manage.py runserver
    ```
    
+   The app will be available at `http://localhost:8000/`
 
 ## 🎮 Usage
 
@@ -167,25 +173,26 @@ erDiagram
 ### 📁 Project Structure
 
 ```
-InvoiceFlow/
+InvoiceFlow/               # Repository Root
 ├── .env                   # Environment variables (not in repo)
+├── .env.example           # Example environment variables
 ├── .gitignore             # Git ignore rules
-├── manage.py              # Django CLI utility
+├── requirements.txt       # Python dependencies
 ├── README.md              # Project documentation
-├── InvoiceFlow/           # Project configuration
-│   ├── __init__.py
-│   ├── asgi.py
-│   ├── settings.py        # Database (PostgreSQL), Apps, and Middleware config
-│   ├── urls.py            # Global URL routing
-│   └── wsgi.py
-└── myapp/                 # Core Django Application
-    ├── admin.py           # Admin panel configuration
-    ├── apps.py            # App configuration
-    ├── models.py          # Database schema (Company, Invoice, Customer, etc.)
-    ├── views.py           # Business logic, dashboard metrics, PDF generation
-    ├── urls.py            # App-level routing
-    ├── templates/         # HTML templates (Django Template Language)
-    └── migrations/        # Database migration files
+└── InvoiceFlow/           # Django Project Root
+    ├── manage.py          # Django CLI utility
+    ├── assets/            # Images and assets for README
+    ├── templates/         # Global HTML templates
+    ├── InvoiceFlow/       # Project configuration
+    │   ├── settings.py    # Database, Apps, and Middleware config
+    │   ├── urls.py        # Global URL routing
+    │   └── wsgi.py
+    └── myapp/             # Core Django Application
+        ├── admin.py       
+        ├── models.py      # Database schema
+        ├── views.py       # Business logic
+        ├── urls.py        # App-level routing
+        └── migrations/    
 ```
 
 ## 📝 License
