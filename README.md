@@ -9,25 +9,29 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 ## ✨ Features
 
 ### 🎯 Core Features
-- **Multi-Tenant Architecture**: Users can create and manage multiple companies and switch between them effortlessly
-- **Role-based Access**: Assign different roles (Owner, Admin, Staff) to users within a company to ensure secure access control
-- **Interactive Dashboard**: View key metrics such as total revenue, pending amounts, overdue invoices, and recent activity at a glance
+- **Multi-Tenant Architecture**: Users can create and manage multiple companies and switch between them effortlessly.
+- **Company-level Data Isolation**: Ensure your clients, products, and invoices are kept strictly tied to the active company.
+- **Company Membership & Roles**: Users can belong to companies, and memberships support Owner, Admin, and Staff roles.
+- **Interactive Dashboard Analytics**: View key metrics such as total revenue, pending amounts, overdue invoices, and recent activity at a glance.
 
 ### 🏢 Client & Product Management
-- **Centralized Client Hub**: Easily add, edit, and manage clients for each company
-- **Product Catalog**: Manage products or services with pricing and tax details
+- **Customer/Client Management**: Easily add, edit, and manage clients for each company.
+- **Product Catalog Management**: Manage products or services with pricing and tax details.
 
 ### 🧾 Invoice Generation & Management
-- **Status Tracking**: Create and manage invoices with various statuses (Draft, Sent, Paid, Overdue, Cancelled)
-- **Automated Calculations**: Automatically calculate subtotals, taxes, and discounts based on invoice items
-- **PDF Generation**: Generate, view, and download professional invoices as PDF documents (powered by ReportLab)
+- **Invoice Creation**: Create invoices and add multiple invoice items to accurately bill your customers.
+- **Automated Calculations**: Automatically calculate subtotals, taxes, and discounts to compute total amounts based on invoice items.
+- **Invoice Status Tracking**: Invoices automatically track their state. When created, they are marked as SENT. They transition to PAID when fully paid, and handle OVERDUE statuses for past-due invoices. Invoices can also be cancelled.
+- **Invoice Search/Filtering**: Easily locate and filter specific invoices from your dashboard.
+- **PDF Generation**: Generate and download invoice-specific PDF documents using ReportLab.
 
-### 💳 Payment Tracking
-- **Multi-Method Support**: Record payments against specific invoices using different payment methods (Cash, UPI, Card, Bank Transfer)
-- **Real-time Updates**: Keep track of pending and paid amounts automatically when a payment is recorded
+### 💳 Automatic Payment Tracking
+- **Automatic Updates**: When payments are recorded, the system automatically calculates the total amount paid, remaining balance, invoice payment status, and dashboard financial metrics.
+- **Flexible Payments**: The system supports partial payments, full payments, and includes overpayment validation.
+- **Multi-Method Support**: Record payments against specific invoices using different payment methods (Cash, UPI, Card, Bank Transfer).
 
 ### 📊 Reporting & Analytics
-- **Export Reports**: Generate and export CSV/PDF reports for business analytics and accounting purposes
+- **Financial Report PDF**: Company-level financial reports can be generated and downloaded as PDF documents using ReportLab.
 
 ## 🛠️ Tech Stack
 
@@ -38,7 +42,7 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 - **ReportLab** - PDF generation engine
 
 ### Frontend
-- **HTML/CSS** - Structure and styling
+- **HTML, CSS, and JavaScript** - Structure, styling, and basic client-side behavior
 - **Django Templates (DTL)** - Server-side rendering for dynamic pages
 
 ## 📦 Installation
@@ -65,15 +69,14 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 
 3. **Install Dependencies**
    ```bash
-   pip install django reportlab psycopg2-binary python-dotenv
+   pip install -r requirements.txt
    ```
-   *(Note: Alternatively use `pip install -r requirements.txt` if available)*
 
 4. **Configure Environment Variables**
    Create a `.env` file in the root directory:
    ```env
    SECRET_KEY=your-django-secret-key
-   DB_NAME=invoiceflow_db
+   DB_NAME=invoiceflow
    DB_USER=postgres
    DB_PASSWORD=your-db-password
    DB_HOST=localhost
@@ -82,7 +85,6 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 
 5. **Run Database Migrations**
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
 
@@ -102,26 +104,25 @@ InvoiceFlow is a comprehensive, multi-tenant Django-based application designed f
 
 ### Getting Started
 
-1. **Sign Up / Login**
-   - Navigate to the landing page and sign up for a new account or log in
+1. **Sign Up / Login / Logout**
+   - Navigate to the landing page and sign up for a new account or log in securely.
    
 2. **Create a Company**
-   - Upon logging in, create your first company to start managing its billing
-   - Switch between multiple companies from the top navigation bar
+   - Upon logging in, create your first company to start managing its billing.
+   - Switch between multiple companies from the top navigation bar.
 
 3. **Add Clients & Products**
-   - Navigate to the "Clients" section to add new customers
-   - Go to "Products" to build your catalog of services or items
+   - Navigate to the "Clients" section to add new customers.
+   - Go to "Products" to build your catalog of services or items.
 
 4. **Generate Invoices**
-   - Click on "Create Invoice" and select a client
-   - Add products/items, adjust quantities, and apply discounts or taxes
-   - Save as Draft or Mark as Sent
-   - Download the generated PDF invoice
+   - Click on "Create Invoice" and select a client.
+   - Add products/items, adjust quantities, and apply discounts or taxes.
+   - Download the invoice-specific PDF document.
 
 5. **Record Payments**
-   - When a client pays, go to the invoice and click "Record Payment"
-   - Select the payment method and enter the amount. The dashboard metrics will update automatically
+   - When a client pays, go to the invoice and click "Record Payment".
+   - Select the payment method and enter the amount. The dashboard metrics will update automatically.
 
 ## 🏗️ Architecture & Codebase Details
 
