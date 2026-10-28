@@ -1,0 +1,12 @@
+{
+  "extraPaths": [
+    "./InvoiceFlow"
+  ],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingModuleSource": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportGeneralTypeIssues": "none",
+  "reportOperatorIssue": "none"
+}

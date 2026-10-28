@@ -850,7 +850,9 @@
       function toggleCompanyMenu() {
         const menu = document.getElementById("companyMenu");
 
-        menu.classList.toggle("show");
+        if (menu) {
+          menu.classList.toggle("show");
+        }
       }
 
       document.addEventListener("click", function (event) {
@@ -858,7 +860,7 @@
 
         const menu = document.getElementById("companyMenu");
 
-        if (switcher && !switcher.contains(event.target)) {
+        if (switcher && menu && !switcher.contains(event.target)) {
           menu.classList.remove("show");
         }
       });

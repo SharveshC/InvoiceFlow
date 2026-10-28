@@ -788,6 +788,16 @@
           </a>
         </div>
 
+        {% if messages %}
+        <div style="margin-bottom: 20px;">
+          {% for message in messages %}
+          <div style="background: #2a1215; border: 1px solid #7c2d37; color: #ff8591; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.4;">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="toolbar">
           <input
             type="text"

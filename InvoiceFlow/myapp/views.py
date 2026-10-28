@@ -2,14 +2,14 @@ from decimal import Decimal, InvalidOperation
 from datetime import date
 
 from reportlab.pdfgen import canvas
-from reportlab.pdfbase.pdfmetrics import stringWidth
 
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Sum
-from django.http import HttpResponse
+from django.db.models import Sum, ProtectedError
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, redirect
 
 from reportlab.lib import colors
@@ -42,17 +42,26 @@ def home(request):
 def login_page(request):
     if request.method == "POST":
 
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+        email = (request.POST.get("email") or "").strip()
+        password = request.POST.get("password") or ""
 
-        try:
-            user = User.objects.get(email__iexact=email)
-            username = user.username
+        if not email or not password:
+            return render(
+                request,
+                "login.html",
+                {"error": "Please enter your email and password."},
+            )
 
-        except User.DoesNotExist:
-            username = None
+        user_obj = User.objects.filter(email__iexact=email).first()
 
-        user = authenticate(request, username=username, password=password)
+        if user_obj is None:
+            return render(
+                request,
+                "login.html",
+                {"error": "Invalid email or password."},
+            )
+
+        user = authenticate(request, username=user_obj.username, password=password)
 
         if user is not None:
             login(request, user)
@@ -66,10 +75,13 @@ def login_page(request):
 def signup(request):
     if request.method == "POST":
 
-        full_name = request.POST.get("full_name")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        confirm_password = request.POST.get("confirm_password")
+        full_name = (request.POST.get("full_name") or "").strip()
+        email = (request.POST.get("email") or "").strip()
+        password = request.POST.get("password") or ""
+        confirm_password = request.POST.get("confirm_password") or ""
+
+        if not full_name or not email or not password:
+            return render(request, "signup.html", {"error": "Please fill in all required fields."})
 
         if password != confirm_password:
             return render(request, "signup.html", {"error": "Passwords do not match."})
@@ -81,7 +93,8 @@ def signup(request):
                 {"error": "An account with this email already exists."},
             )
 
-        username = email
+        # Django username max_length is 150; truncate if email is longer
+        username = email[:150]
 
         user = User.objects.create_user(
             username=username, email=email, password=password
@@ -95,44 +108,34 @@ def signup(request):
     return render(request, "signup.html")
 
 
-from datetime import date
-
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.shortcuts import render
-
-
-@login_required
-def dashboard(request):
-
-    # ==========================================
-    # USER'S COMPANIES
-    # ==========================================
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
+def get_user_company_context(request):
+    memberships = (
+        Membership.objects.filter(user=request.user)
+        .select_related("company")
+        .order_by("created_at")
+    )
     companies = [membership.company for membership in memberships]
 
-    # ==========================================
-    # CURRENT COMPANY
-    # ==========================================
-
     current_company_id = request.session.get("current_company_id")
-
     current_company = None
 
     if current_company_id:
-
         current_company = next(
             (company for company in companies if company.id == current_company_id),
             None,
         )
 
     if current_company is None and companies:
-
         current_company = companies[0]
-
         request.session["current_company_id"] = current_company.id
+
+    return current_company, companies
+
+
+@login_required
+def dashboard(request):
+
+    current_company, companies = get_user_company_context(request)
 
     # ==========================================
     # DEFAULT DASHBOARD VALUES
@@ -279,6 +282,7 @@ def dashboard(request):
     )
 
 
+@login_required
 def logout_view(request):
     if request.method == "POST":
         logout(request)
@@ -292,11 +296,11 @@ def create_company(request):
 
     if request.method == "POST":
 
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        address = request.POST.get("address")
-        gst_number = request.POST.get("gst_number")
+        name = (request.POST.get("name") or "").strip()
+        email = (request.POST.get("email") or "").strip()
+        phone = (request.POST.get("phone") or "").strip()
+        address = (request.POST.get("address") or "").strip()
+        gst_number = (request.POST.get("gst_number") or "").strip()
 
         if not name or not email or not phone or not address:
             return render(
@@ -340,25 +344,10 @@ def switch_company(request, company_id):
 @login_required
 def clients(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     customers = Customer.objects.filter(company=current_company).order_by("-created_at")
 
@@ -376,33 +365,18 @@ def clients(request):
 @login_required
 def add_client(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     if request.method == "POST":
 
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        address = request.POST.get("address")
-        gst_number = request.POST.get("gst_number")
+        name = (request.POST.get("name") or "").strip()
+        email = (request.POST.get("email") or "").strip()
+        phone = (request.POST.get("phone") or "").strip()
+        address = (request.POST.get("address") or "").strip()
+        gst_number = (request.POST.get("gst_number") or "").strip()
 
         if not name or not email or not phone or not address:
             return render(
@@ -439,25 +413,10 @@ def add_client(request):
 @login_required
 def edit_client(request, client_id):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     customer = Customer.objects.filter(id=client_id, company=current_company).first()
 
@@ -466,11 +425,11 @@ def edit_client(request, client_id):
 
     if request.method == "POST":
 
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        address = request.POST.get("address")
-        gst_number = request.POST.get("gst_number")
+        name = (request.POST.get("name") or "").strip()
+        email = (request.POST.get("email") or "").strip()
+        phone = (request.POST.get("phone") or "").strip()
+        address = (request.POST.get("address") or "").strip()
+        gst_number = (request.POST.get("gst_number") or "").strip()
 
         if not name or not email or not phone or not address:
             return render(
@@ -507,30 +466,26 @@ def edit_client(request, client_id):
 @login_required
 def delete_client(request, client_id):
 
-    current_company_id = request.session.get("current_company_id")
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
 
-    if not current_company_id:
-        return redirect("dashboard")
+    current_company, companies = get_user_company_context(request)
 
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
+    if current_company is None:
+        return redirect("create_company")
 
     customer = Customer.objects.filter(id=client_id, company=current_company).first()
 
     if customer is None:
         return redirect("clients")
 
-    if request.method == "POST":
+    try:
         customer.delete()
-        return redirect("clients")
+    except ProtectedError:
+        messages.error(
+            request,
+            "Cannot delete client because they are linked to existing invoices.",
+        )
 
     return redirect("clients")
 
@@ -538,25 +493,10 @@ def delete_client(request, client_id):
 @login_required
 def products(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     products = Product.objects.filter(company=current_company).order_by("-created_at")
 
@@ -574,34 +514,19 @@ def products(request):
 @login_required
 def add_product(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     if request.method == "POST":
 
-        name = request.POST.get("name")
-        description = request.POST.get("description")
-        price = request.POST.get("price")
-        tax = request.POST.get("tax")
+        name = (request.POST.get("name") or "").strip()
+        description = (request.POST.get("description") or "").strip()
+        price_str = (request.POST.get("price") or "").strip()
+        tax_str = (request.POST.get("tax") or "0").strip()
 
-        if not name or not price:
+        if not name or not price_str:
             return render(
                 request,
                 "add_product.html",
@@ -612,12 +537,30 @@ def add_product(request):
                 },
             )
 
+        try:
+            price = Decimal(price_str)
+            tax = Decimal(tax_str)
+            if price < 0:
+                raise InvalidOperation
+            if tax < 0:
+                raise InvalidOperation
+        except (InvalidOperation, ValueError):
+            return render(
+                request,
+                "add_product.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "error": "Please enter valid numbers for price and tax.",
+                },
+            )
+
         Product.objects.create(
             company=current_company,
             name=name,
             description=description or None,
             price=price,
-            tax=tax or 0,
+            tax=tax,
         )
 
         return redirect("products")
@@ -635,25 +578,10 @@ def add_product(request):
 @login_required
 def edit_product(request, product_id):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     product = Product.objects.filter(id=product_id, company=current_company).first()
 
@@ -662,12 +590,12 @@ def edit_product(request, product_id):
 
     if request.method == "POST":
 
-        name = request.POST.get("name")
-        description = request.POST.get("description")
-        price = request.POST.get("price")
-        tax = request.POST.get("tax")
+        name = (request.POST.get("name") or "").strip()
+        description = (request.POST.get("description") or "").strip()
+        price_str = (request.POST.get("price") or "").strip()
+        tax_str = (request.POST.get("tax") or "0").strip()
 
-        if not name or not price:
+        if not name or not price_str:
             return render(
                 request,
                 "edit_product.html",
@@ -679,10 +607,29 @@ def edit_product(request, product_id):
                 },
             )
 
+        try:
+            price = Decimal(price_str)
+            tax = Decimal(tax_str)
+            if price < 0:
+                raise InvalidOperation
+            if tax < 0:
+                raise InvalidOperation
+        except (InvalidOperation, ValueError):
+            return render(
+                request,
+                "edit_product.html",
+                {
+                    "product": product,
+                    "current_company": current_company,
+                    "companies": companies,
+                    "error": "Please enter valid numbers for price and tax.",
+                },
+            )
+
         product.name = name
         product.description = description or None
         product.price = price
-        product.tax = tax or 0
+        product.tax = tax
 
         product.save()
 
@@ -702,28 +649,28 @@ def edit_product(request, product_id):
 @login_required
 def delete_product(request, product_id):
 
-    current_company_id = request.session.get("current_company_id")
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
 
-    if not current_company_id:
-        return redirect("dashboard")
+    current_company, companies = get_user_company_context(request)
 
-    membership = Membership.objects.filter(
-        user=request.user, company_id=current_company_id
-    ).first()
-
-    if membership is None:
-        return redirect("dashboard")
+    if current_company is None:
+        return redirect("create_company")
 
     product = Product.objects.filter(
-        id=product_id, company_id=current_company_id
+        id=product_id, company=current_company
     ).first()
 
     if product is None:
         return redirect("products")
 
-    if request.method == "POST":
+    try:
         product.delete()
-        return redirect("products")
+    except ProtectedError:
+        messages.error(
+            request,
+            "Cannot delete product because it is linked to existing invoice items.",
+        )
 
     return redirect("products")
 
@@ -731,30 +678,10 @@ def delete_product(request, product_id):
 @login_required
 def invoices(request):
 
-    # =========================
-    # GET USER COMPANIES
-    # =========================
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
-
-    # =========================
-    # GET CURRENT COMPANY
-    # =========================
-
-    current_company_id = request.session.get("current_company_id")
-
-    current_company = None
-
-    if current_company_id:
-        current_company = next(
-            (company for company in companies if company.id == current_company_id),
-            None,
-        )
+    current_company, companies = get_user_company_context(request)
 
     if current_company is None:
-        return redirect("dashboard")
+        return redirect("create_company")
 
     # =========================
     # UPDATE OVERDUE INVOICES
@@ -794,25 +721,10 @@ def invoices(request):
 @login_required
 def create_invoice(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     customers = Customer.objects.filter(company=current_company).order_by("name")
 
@@ -822,8 +734,8 @@ def create_invoice(request):
 
         invoice_number = request.POST.get("invoice_number", "").strip()
         customer_id = request.POST.get("customer")
-        issue_date = request.POST.get("issue_date")
-        due_date = request.POST.get("due_date")
+        issue_date_str = (request.POST.get("issue_date") or "").strip()
+        due_date_str = (request.POST.get("due_date") or "").strip()
         discount_value = request.POST.get("discount", "0")
         notes = request.POST.get("notes", "").strip()
 
@@ -865,6 +777,36 @@ def create_invoice(request):
                     "customers": customers,
                     "products": products,
                     "error": "Invalid customer.",
+                },
+            )
+
+        # Validate issue_date and due_date
+        try:
+            issue_date = date.fromisoformat(issue_date_str)
+            due_date = date.fromisoformat(due_date_str)
+        except (ValueError, TypeError):
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Please enter valid issue and due dates.",
+                },
+            )
+
+        if due_date < issue_date:
+            return render(
+                request,
+                "create_invoice.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "customers": customers,
+                    "products": products,
+                    "error": "Due date cannot be before the issue date.",
                 },
             )
 
@@ -1057,25 +999,10 @@ def create_invoice(request):
 @login_required
 def payments(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
+    if current_company is None:
+        return redirect("create_company")
 
     payments = (
         Payment.objects.filter(invoice__company=current_company)
@@ -1107,35 +1034,10 @@ def payments(request):
 @login_required
 def record_payment(request):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(
-            user=request.user,
-            company_id=current_company_id
-        )
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
-
-    memberships = (
-        Membership.objects
-        .filter(user=request.user)
-        .select_related("company")
-    )
-
-    companies = [
-        membership.company
-        for membership in memberships
-    ]
+    if current_company is None:
+        return redirect("create_company")
 
     # =========================
     # GET ALL INVOICES
@@ -1247,7 +1149,65 @@ def record_payment(request):
             )
 
         # =========================
+        # PRE-FLIGHT CHECKS (outside atomic)
+        # Validate invoice existence and status before
+        # acquiring a DB row lock inside the transaction.
+        # =========================
+
+        invoice_check = (
+            Invoice.objects
+            .filter(
+                id=invoice_id,
+                company=current_company,
+            )
+            .first()
+        )
+
+        # =========================
+        # INVALID INVOICE
+        # =========================
+
+        if invoice_check is None:
+
+            return render(
+                request,
+                "record_payment.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "invoices": invoices,
+                    "selected_invoice": selected_invoice,
+                    "selected_invoice_id": selected_invoice_id,
+                    "error": "Invalid invoice selected.",
+                },
+            )
+
+        # =========================
+        # CANCELLED INVOICE
+        # =========================
+
+        if invoice_check.status == "CANCELLED":
+
+            return render(
+                request,
+                "record_payment.html",
+                {
+                    "current_company": current_company,
+                    "companies": companies,
+                    "invoices": invoices,
+                    "selected_invoice": selected_invoice,
+                    "selected_invoice_id": selected_invoice_id,
+                    "error": (
+                        "Payment cannot be recorded "
+                        "for a cancelled invoice."
+                    ),
+                },
+            )
+
+        # =========================
         # TRANSACTION
+        # Acquire row lock only for the actual
+        # payment creation logic.
         # =========================
 
         with transaction.atomic():
@@ -1262,12 +1222,8 @@ def record_payment(request):
                 .first()
             )
 
-            # =========================
-            # INVALID INVOICE
-            # =========================
-
+            # Guard: invoice deleted between pre-flight and lock
             if invoice is None:
-
                 return render(
                     request,
                     "record_payment.html",
@@ -1278,28 +1234,6 @@ def record_payment(request):
                         "selected_invoice": selected_invoice,
                         "selected_invoice_id": selected_invoice_id,
                         "error": "Invalid invoice selected.",
-                    },
-                )
-
-            # =========================
-            # CANCELLED INVOICE
-            # =========================
-
-            if invoice.status == "CANCELLED":
-
-                return render(
-                    request,
-                    "record_payment.html",
-                    {
-                        "current_company": current_company,
-                        "companies": companies,
-                        "invoices": invoices,
-                        "selected_invoice": selected_invoice,
-                        "selected_invoice_id": selected_invoice_id,
-                        "error": (
-                            "Payment cannot be recorded "
-                            "for a cancelled invoice."
-                        ),
                     },
                 )
 
@@ -1400,12 +1334,7 @@ def record_payment(request):
 
                 invoice.status = "SENT"
 
-            invoice.save(
-                update_fields=[
-                    "status",
-                    "updated_at"
-                ]
-            )
+            invoice.save(update_fields=["status"])
 
         # =========================
         # SUCCESS
@@ -1433,21 +1362,10 @@ def record_payment(request):
 @login_required
 def invoice_details(request, invoice_id):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(user=request.user, company_id=current_company_id)
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
+    if current_company is None:
+        return redirect("create_company")
 
     invoice = (
         Invoice.objects.select_related("customer")
@@ -1468,10 +1386,6 @@ def invoice_details(request, invoice_id):
 
     remaining_amount = invoice.total - paid_amount
 
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
-
     return render(
         request,
         "invoice_details.html",
@@ -1490,24 +1404,10 @@ def invoice_details(request, invoice_id):
 @login_required
 def generate_invoice_pdf(request, invoice_id):
 
-    current_company_id = request.session.get("current_company_id")
+    current_company, companies = get_user_company_context(request)
 
-    if not current_company_id:
-        return redirect("dashboard")
-
-    membership = (
-        Membership.objects.filter(
-            user=request.user,
-            company_id=current_company_id
-        )
-        .select_related("company")
-        .first()
-    )
-
-    if membership is None:
-        return redirect("dashboard")
-
-    current_company = membership.company
+    if current_company is None:
+        return redirect("create_company")
 
     # =========================
     # GET INVOICE
@@ -1571,7 +1471,7 @@ def generate_invoice_pdf(request, invoice_id):
     # =========================
 
     pdf = canvas.Canvas(
-        response,
+        response,  # type: ignore[arg-type]
         pagesize=A4
     )
 
@@ -1996,48 +1896,10 @@ def generate_invoice_pdf(request, invoice_id):
 @login_required
 def export_report(request):
 
-    # ==========================================
-    # USER'S COMPANIES
-    # ==========================================
-
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
-
-    # ==========================================
-    # CURRENT COMPANY
-    # ==========================================
-
-    current_company_id = request.session.get("current_company_id")
-
-    current_company = None
-
-    if current_company_id:
-
-        current_company = next(
-            (company for company in companies if company.id == current_company_id),
-            None,
-        )
-
-    # If no valid company is selected,
-    # fall back to the user's first company.
-
-    if current_company is None and companies:
-
-        current_company = companies[0]
-
-        request.session["current_company_id"] = current_company.id
-
-    # ==========================================
-    # SAFETY CHECK
-    # ==========================================
+    current_company, companies = get_user_company_context(request)
 
     if current_company is None:
-
-        return HttpResponse(
-            "No company found.",
-            status=400,
-        )
+        return redirect("create_company")
 
     # ==========================================
     # COMPANY INVOICES
@@ -2125,7 +1987,7 @@ def export_report(request):
     # ==========================================
 
     document = SimpleDocTemplate(
-        response,
+        response,  # type: ignore[arg-type]
         pagesize=A4,
         rightMargin=15 * mm,
         leftMargin=15 * mm,
@@ -2260,7 +2122,25 @@ def export_report(request):
                     colors.grey,
                 ),
                 (
-                    "PADDING",
+                    "TOPPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    7,
+                ),
+                (
+                    "BOTTOMPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    7,
+                ),
+                (
+                    "LEFTPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    7,
+                ),
+                (
+                    "RIGHTPADDING",
                     (0, 0),
                     (-1, -1),
                     7,
@@ -2357,7 +2237,25 @@ def export_report(request):
                     colors.grey,
                 ),
                 (
-                    "PADDING",
+                    "TOPPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+                (
+                    "BOTTOMPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+                (
+                    "LEFTPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+                (
+                    "RIGHTPADDING",
                     (0, 0),
                     (-1, -1),
                     6,
@@ -2454,7 +2352,25 @@ def export_report(request):
                     colors.grey,
                 ),
                 (
-                    "PADDING",
+                    "TOPPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+                (
+                    "BOTTOMPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+                (
+                    "LEFTPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    6,
+                ),
+                (
+                    "RIGHTPADDING",
                     (0, 0),
                     (-1, -1),
                     6,
@@ -2488,20 +2404,7 @@ def cancel_invoice(request, invoice_id):
     # GET CURRENT COMPANY
     # ==========================================
 
-    memberships = Membership.objects.filter(user=request.user).select_related("company")
-
-    companies = [membership.company for membership in memberships]
-
-    current_company_id = request.session.get("current_company_id")
-
-    current_company = None
-
-    if current_company_id:
-
-        current_company = next(
-            (company for company in companies if company.id == current_company_id),
-            None,
-        )
+    current_company, companies = get_user_company_context(request)
 
     # ==========================================
     # NO COMPANY
@@ -2509,7 +2412,7 @@ def cancel_invoice(request, invoice_id):
 
     if current_company is None:
 
-        return redirect("dashboard")
+        return redirect("create_company")
 
     # ==========================================
     # GET INVOICE
@@ -2553,12 +2456,7 @@ def cancel_invoice(request, invoice_id):
 
     invoice.status = "CANCELLED"
 
-    invoice.save(
-        update_fields=[
-            "status",
-            "updated_at",
-        ]
-    )
+    invoice.save(update_fields=["status"])
 
     # ==========================================
     # RETURN TO DETAILS

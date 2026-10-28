@@ -508,7 +508,7 @@
             </a>
 
             <a
-                href="#"
+                href="{% url 'invoices' %}"
                 class="nav-item"
             >
                 <span class="nav-icon">▤</span>
@@ -516,7 +516,7 @@
             </a>
 
             <a
-                href="#"
+                href="{% url 'create_invoice' %}"
                 class="nav-item"
             >
                 <span class="nav-icon">＋</span>
@@ -532,7 +532,15 @@
             </a>
 
             <a
-                href="#"
+                href="{% url 'products' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">▤</span>
+                Products
+            </a>
+
+            <a
+                href="{% url 'payments' %}"
                 class="nav-item"
             >
                 <span class="nav-icon">₹</span>

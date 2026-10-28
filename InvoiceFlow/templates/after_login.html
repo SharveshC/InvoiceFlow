@@ -808,6 +808,22 @@
         </div>
       </div>
 
+      <!-- =========================
+           ONBOARDING (NO COMPANY)
+      ========================= -->
+
+      {% if not companies %}
+      <div class="stat-card" style="margin-bottom: 35px; text-align: center; padding: 40px 20px;">
+        <h2 style="font-size: 22px; margin-bottom: 10px;">Welcome to InvoiceFlow!</h2>
+        <p style="color: #aaa; font-size: 14px; margin-bottom: 25px;">
+          Welcome to InvoiceFlow! To get started, please create your company profile.
+        </p>
+        <a href="{% url 'create_company' %}" class="btn" style="display: inline-block;">
+          ＋ Create Company
+        </a>
+      </div>
+      {% endif %}
+
      <!-- =========================
      STATISTICS
 ========================= -->
