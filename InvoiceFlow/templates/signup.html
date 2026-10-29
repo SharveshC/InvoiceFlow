@@ -294,6 +294,18 @@
            LOGIN LINK
         ========================= */
 
+        .error-message {
+            background: #2a1215;
+            border: 1px solid #7c2d37;
+            color: #ff8591;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+
         .login-link {
             text-align: center;
 
@@ -374,7 +386,13 @@
 
 
 
-            <form method="POST">
+            {% if error %}
+                <div class="error-message">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'signup' %}">
 
     {% csrf_token %}
 

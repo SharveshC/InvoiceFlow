@@ -40,6 +40,9 @@ def home(request):
 
 
 def login_page(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
     if request.method == "POST":
 
         email = (request.POST.get("email") or "").strip()
@@ -52,9 +55,12 @@ def login_page(request):
                 {"error": "Please enter your email and password."},
             )
 
-        user_obj = User.objects.filter(email__iexact=email).first()
+        user_obj = (
+            User.objects.filter(email__iexact=email).first()
+            or User.objects.filter(username__iexact=email).first()
+        )
 
-        if user_obj is None:
+        if user_obj is None or not user_obj.is_active:
             return render(
                 request,
                 "login.html",
@@ -63,7 +69,7 @@ def login_page(request):
 
         user = authenticate(request, username=user_obj.username, password=password)
 
-        if user is not None:
+        if user is not None and user.is_active:
             login(request, user)
             return redirect("dashboard")
 
@@ -73,6 +79,9 @@ def login_page(request):
 
 
 def signup(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
     if request.method == "POST":
 
         full_name = (request.POST.get("full_name") or "").strip()
@@ -80,28 +89,46 @@ def signup(request):
         password = request.POST.get("password") or ""
         confirm_password = request.POST.get("confirm_password") or ""
 
-        if not full_name or not email or not password:
-            return render(request, "signup.html", {"error": "Please fill in all required fields."})
+        if not full_name or not email or not password or not confirm_password:
+            return render(
+                request,
+                "signup.html",
+                {"error": "Please fill in all required fields."},
+            )
 
         if password != confirm_password:
-            return render(request, "signup.html", {"error": "Passwords do not match."})
+            return render(
+                request,
+                "signup.html",
+                {"error": "Passwords do not match."},
+            )
 
-        if User.objects.filter(email__iexact=email).exists():
+        normalized_email = email.lower()
+        username = normalized_email[:150]
+
+        if (
+            User.objects.filter(email__iexact=normalized_email).exists()
+            or User.objects.filter(username__iexact=username).exists()
+        ):
             return render(
                 request,
                 "signup.html",
                 {"error": "An account with this email already exists."},
             )
 
-        # Django username max_length is 150; truncate if email is longer
-        username = email[:150]
-
         user = User.objects.create_user(
-            username=username, email=email, password=password
+            username=username,
+            email=normalized_email,
+            password=password,
+            first_name=full_name[:150],
         )
 
-        user.first_name = full_name
-        user.save()
+        authenticated_user = authenticate(
+            request, username=username, password=password
+        )
+        if authenticated_user is not None and authenticated_user.is_active:
+            login(request, authenticated_user)
+            return redirect("dashboard")
 
         return redirect("login")
 
@@ -282,7 +309,6 @@ def dashboard(request):
     )
 
 
-@login_required
 def logout_view(request):
     if request.method == "POST":
         logout(request)
