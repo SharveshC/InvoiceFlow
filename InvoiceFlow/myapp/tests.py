@@ -353,3 +353,17 @@ class AuthenticationAndOnboardingTests(TestCase):
             "Welcome to InvoiceFlow! To get started, please create your company profile.",
         )
 
+
+class ApiHealthCheckTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_api_health_check_endpoint(self):
+        response = self.client.get(reverse("api_health_check"))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("status"), "ok")
+        self.assertEqual(data.get("message"), "InvoiceFlow API is running")
+        self.assertEqual(data.get("version"), "1.0")
+
