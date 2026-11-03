@@ -143,3 +143,17 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
+
+
+# CSRF Trusted Origins for local Vite React development and production
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Allow additional production trusted origins from environment if configured
+csrf_trusted_env = os.getenv("CSRF_TRUSTED_ORIGINS")
+if csrf_trusted_env:
+    CSRF_TRUSTED_ORIGINS.extend(
+        [origin.strip() for origin in csrf_trusted_env.split(",") if origin.strip()]
+    )

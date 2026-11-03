@@ -1,75 +1,123 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import { checkApiHealth } from './services/api';
+import { getCurrentUser, getCsrfToken, logoutUser } from './services/api';
+import Login from './components/Login';
+import Signup from './components/Signup';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const [apiStatus, setApiStatus] = useState('checking');
-  const [apiData, setApiData] = useState(null);
+  const [user, setUser] = useState(null);
+  const [currentCompany, setCurrentCompany] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [view, setView] = useState('login'); // 'login' | 'signup' | 'authenticated'
+  const [loading, setLoading] = useState(true);
 
+  // Initialize session and fetch current authenticated user
   useEffect(() => {
-    checkApiHealth()
-      .then((data) => {
-        setApiStatus('connected');
-        setApiData(data);
-      })
-      .catch((err) => {
-        setApiStatus('waiting_for_approval');
-        setApiData({ error: err.message });
-      });
+    async function initAuth() {
+      try {
+        await getCsrfToken();
+        const authData = await getCurrentUser();
+        if (authData && authData.isAuthenticated) {
+          setUser(authData.user);
+          setCurrentCompany(authData.current_company);
+          setCompanies(authData.companies || []);
+          setView('authenticated');
+        }
+      } catch (err) {
+        console.error('Failed to initialize auth:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    initAuth();
   }, []);
 
+  const handleLoginSuccess = (data) => {
+    setUser(data.user);
+    setCurrentCompany(data.current_company || null);
+    setCompanies(data.companies || []);
+    setView('authenticated');
+  };
+
+  const handleSignupSuccess = (data) => {
+    setUser(data.user);
+    setCurrentCompany(data.current_company || null);
+    setCompanies(data.companies || []);
+    setView('authenticated');
+  };
+
+  const handleCompanyUpdated = (updatedCompany, updatedCompanies) => {
+    setCurrentCompany(updatedCompany);
+    setCompanies(updatedCompanies);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+      setCurrentCompany(null);
+      setCompanies([]);
+      setView('login');
+      getCsrfToken().catch(() => {});
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <div className="loading-spinner">Loading InvoiceFlow...</div>
+      </div>
+    );
+  }
+
+  // Authenticated view renders the full Dashboard
+  if (view === 'authenticated' && user) {
+    return (
+      <div className="app-shell">
+        <Dashboard
+          user={user}
+          currentCompany={currentCompany}
+          companies={companies}
+          onCompanyUpdated={handleCompanyUpdated}
+          onLogout={handleLogout}
+        />
+      </div>
+    );
+  }
+
+  // Unauthenticated view renders Login or Signup
   return (
-    <div className="container">
-      <header className="header">
-        <span className="logo-badge">InvoiceFlow React Migration • Phase 1</span>
-        <h1 className="title">Frontend + API Setup</h1>
-        <p className="subtitle">
-          React frontend running alongside existing Django application
-        </p>
-      </header>
+    <div className="app-shell">
+      <div className="auth-container">
+        <header className="auth-header">
+          <span className="brand-badge">InvoiceFlow</span>
+          <h1 className="auth-title">
+            {view === 'signup' ? 'Create an account' : 'Welcome back'}
+          </h1>
+          <p className="auth-subtitle">
+            {view === 'signup'
+              ? 'Get started with your invoicing workspace'
+              : 'Enter your credentials to access your workspace'}
+          </p>
+        </header>
 
-      <main>
-        <section className="card">
-          <h2 className="card-title">Backend API Connection</h2>
-          <div className="status-box">
-            <span
-              className={`status-dot ${
-                apiStatus === 'connected'
-                  ? 'active'
-                  : apiStatus === 'waiting_for_approval'
-                  ? 'error'
-                  : ''
-              }`}
-            />
-            <span className="status-text">
-              {apiStatus === 'checking' && 'Checking connection to Django REST Framework...'}
-              {apiStatus === 'connected' &&
-                `Connected to Django REST Framework: ${apiData?.message || 'Ready'}`}
-              {apiStatus === 'waiting_for_approval' &&
-                'Awaiting Django settings URL hook approval (or Django server offline)'}
-            </span>
-          </div>
-
-          <div className="grid">
-            <div className="grid-item">
-              <div className="grid-label">Frontend</div>
-              <div className="grid-value">React + Vite</div>
-            </div>
-            <div className="grid-item">
-              <div className="grid-label">Styling</div>
-              <div className="grid-value">Ordinary CSS</div>
-            </div>
-            <div className="grid-item">
-              <div className="grid-label">Backend API</div>
-              <div className="grid-value">Django REST Framework</div>
-            </div>
-            <div className="grid-item">
-              <div className="grid-label">Existing HTML App</div>
-              <div className="grid-value">100% Intact</div>
-            </div>
-          </div>
-        </section>
-      </main>
+        {view === 'signup' ? (
+          <Signup
+            onSignupSuccess={handleSignupSuccess}
+            onSwitchToLogin={() => setView('login')}
+          />
+        ) : (
+          <Login
+            onLoginSuccess={handleLoginSuccess}
+            onSwitchToSignup={() => setView('signup')}
+          />
+        )}
+      </div>
     </div>
   );
 }
