@@ -450,7 +450,7 @@
 
 .user-email {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #A1A1AA;
 }
 
 /* ==========================================================================
@@ -553,7 +553,7 @@
 
 .detail-label {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #A1A1AA;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -601,7 +601,7 @@
 
 .item-company-email {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #A1A1AA;
   display: block;
   margin-top: 2px;
 }

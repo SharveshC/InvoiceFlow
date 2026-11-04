@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 from dotenv import load_dotenv
 
@@ -31,6 +32,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").strip().lower() in ("true", "1", "yes")
+
+if not DEBUG and not SECRET_KEY:
+    raise ValueError("The SECRET_KEY environment variable must be set in production.")
 
 allowed_hosts_env = os.getenv("ALLOWED_HOSTS")
 if allowed_hosts_env:
@@ -86,16 +90,50 @@ WSGI_APPLICATION = "InvoiceFlow.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+# Database configuration
+# Supports Supabase DATABASE_URL (via IPv4 Session Pooler) or local DB_* settings
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    try:
+        import dj_database_url
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=database_url,
+                conn_max_age=600,
+                ssl_require=True,
+            )
+        }
+    except ImportError:
+        from urllib.parse import urlparse, unquote, parse_qs
+        parsed = urlparse(database_url)
+        query_params = parse_qs(parsed.query)
+        ssl_mode = query_params.get("sslmode", ["require"])[0]
+
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": parsed.path.lstrip("/"),
+                "USER": unquote(parsed.username) if parsed.username else "",
+                "PASSWORD": unquote(parsed.password) if parsed.password else "",
+                "HOST": parsed.hostname or "",
+                "PORT": str(parsed.port) if parsed.port else "5432",
+                "CONN_MAX_AGE": 600,
+                "OPTIONS": {
+                    "sslmode": ssl_mode,
+                },
+            }
+        }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT"),
+        }
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -164,3 +202,57 @@ if csrf_trusted_env:
     CSRF_TRUSTED_ORIGINS.extend(
         [origin.strip() for origin in csrf_trusted_env.split(",") if origin.strip()]
     )
+
+
+# ==============================================================================
+# PRODUCTION SECURITY & REVERSE PROXY SETTINGS
+# ==============================================================================
+
+# Check if running automated tests
+IS_TESTING = "test" in sys.argv
+
+# Determine if production security policies should be enforced
+# Production is active when DEBUG=False and not running tests
+IS_PRODUCTION = not DEBUG and not IS_TESTING
+
+# Render reverse proxy HTTPS termination header
+# Render's load balancers terminate SSL and forward traffic with HTTP_X_FORWARDED_PROTO: https
+# This ensures Django knows requests arrived securely over HTTPS, avoiding redirect loops.
+if IS_PRODUCTION or os.getenv("SECURE_PROXY_SSL_HEADER"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# HTTP-to-HTTPS redirect (enabled by default in production, disabled for local dev and tests)
+if IS_PRODUCTION:
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True").strip().lower() in ("true", "1", "yes")
+else:
+    SECURE_SSL_REDIRECT = False
+
+# Secure Cookies (HTTPS Only in production, HTTP allowed for local dev and tests)
+if IS_PRODUCTION:
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "True").strip().lower() in ("true", "1", "yes")
+    CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "True").strip().lower() in ("true", "1", "yes")
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+# Cookie Security Flags
+SESSION_COOKIE_HTTPONLY = True
+# CSRF cookie must not be HttpOnly so React frontend can read the csrftoken cookie and send X-CSRFToken header
+CSRF_COOKIE_HTTPONLY = False
+
+# Cookie SameSite policy (Lax works seamlessly with Vercel edge rewrites to Render)
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+
+# HTTP Strict Transport Security (HSTS)
+# Kept disabled (0) by default until HTTPS and SSL certificates are verified in production.
+hsts_seconds_env = os.getenv("SECURE_HSTS_SECONDS")
+if IS_PRODUCTION and hsts_seconds_env:
+    try:
+        SECURE_HSTS_SECONDS = int(hsts_seconds_env)
+    except ValueError:
+        SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "False").strip().lower() in ("true", "1", "yes")
+    SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "False").strip().lower() in ("true", "1", "yes")
+else:
+    SECURE_HSTS_SECONDS = 0
