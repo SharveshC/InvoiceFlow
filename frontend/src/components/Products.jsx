@@ -37,30 +37,34 @@ function Products({ currentCompany }) {
     }
   }, [currentCompany]);
 
-  // Load products whenever currentCompany or search changes
+  // Load products whenever currentCompany or search changes (debounced by 300ms)
   useEffect(() => {
     let ignore = false;
     if (!currentCompany) return;
 
-    getProducts(search)
-      .then((data) => {
-        if (!ignore) {
-          setProducts(data);
-        }
-      })
-      .catch((err) => {
-        if (!ignore) {
-          setError(err.message || 'Failed to load products.');
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setLoading(false);
-        }
-      });
+    const delay = search ? 300 : 0;
+    const timer = setTimeout(() => {
+      getProducts(search)
+        .then((data) => {
+          if (!ignore) {
+            setProducts(data);
+          }
+        })
+        .catch((err) => {
+          if (!ignore) {
+            setError(err.message || 'Failed to load products.');
+          }
+        })
+        .finally(() => {
+          if (!ignore) {
+            setLoading(false);
+          }
+        });
+    }, delay);
 
     return () => {
       ignore = true;
+      clearTimeout(timer);
     };
   }, [currentCompany, search]);
 

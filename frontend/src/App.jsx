@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import { getCurrentUser, getCsrfToken, logoutUser } from './services/api';
+import { getCurrentUser, getCsrfToken, logoutUser, setOnAuthFailure } from './services/api';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
@@ -14,6 +14,13 @@ function App() {
 
   // Initialize session and fetch current authenticated user
   useEffect(() => {
+    setOnAuthFailure(() => {
+      setUser(null);
+      setCurrentCompany(null);
+      setCompanies([]);
+      setView('login');
+    });
+
     async function initAuth() {
       try {
         await getCsrfToken();

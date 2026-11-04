@@ -18,6 +18,13 @@ function getCookie(name) {
   return cookieValue;
 }
 
+let authFailureHandler = null;
+let isHandlingAuthFailure = false;
+
+export function setOnAuthFailure(handler) {
+  authFailureHandler = handler;
+}
+
 export async function apiRequest(endpoint, options = {}) {
   const url = endpoint.startsWith('http') ? endpoint : endpoint;
   const headers = {
@@ -40,6 +47,28 @@ export async function apiRequest(endpoint, options = {}) {
 
   if (!response.ok) {
     const errorMsg = data?.error || data?.detail || `API request failed with status ${response.status}`;
+
+    // Handle session expiry and unauthenticated responses
+    const isUnauthenticated =
+      response.status === 401 ||
+      (response.status === 403 && data?.detail === 'Authentication credentials were not provided.');
+
+    const isAuthEndpoint =
+      endpoint.includes('/api/auth/login/') ||
+      endpoint.includes('/api/auth/user/') ||
+      endpoint.includes('/api/auth/csrf/');
+
+    if (isUnauthenticated && !isAuthEndpoint && authFailureHandler && !isHandlingAuthFailure) {
+      isHandlingAuthFailure = true;
+      try {
+        authFailureHandler();
+      } finally {
+        setTimeout(() => {
+          isHandlingAuthFailure = false;
+        }, 1000);
+      }
+    }
+
     throw new Error(errorMsg);
   }
 
@@ -145,4 +174,101 @@ export async function deleteProduct(productId) {
   return apiRequest(`/api/products/${productId}/`, {
     method: 'DELETE',
   });
+}
+
+export async function getInvoices(search = '', status = '') {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+  if (status && status !== 'ALL') params.append('status', status);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequest(`/api/invoices/${query}`);
+}
+
+export async function getInvoice(invoiceId) {
+  return apiRequest(`/api/invoices/${invoiceId}/`);
+}
+
+export async function createInvoice(invoiceData) {
+  return apiRequest('/api/invoices/', {
+    method: 'POST',
+    body: JSON.stringify(invoiceData),
+  });
+}
+
+export async function updateInvoice(invoiceId, invoiceData) {
+  return apiRequest(`/api/invoices/${invoiceId}/`, {
+    method: 'PUT',
+    body: JSON.stringify(invoiceData),
+  });
+}
+
+export async function cancelInvoice(invoiceId) {
+  return apiRequest(`/api/invoices/${invoiceId}/cancel/`, {
+    method: 'POST',
+  });
+}
+
+export async function downloadInvoicePdf(invoiceId, invoiceNumber) {
+  const response = await fetch(`/api/invoices/${invoiceId}/pdf/`, {
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to download invoice PDF.');
+  }
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${invoiceNumber || 'invoice'}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function getPayments(search = '', method = '', invoiceId = '') {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+  if (method && method !== 'ALL') params.append('method', method);
+  if (invoiceId) params.append('invoice_id', invoiceId);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequest(`/api/payments/${query}`);
+}
+
+export async function getPayment(paymentId) {
+  return apiRequest(`/api/payments/${paymentId}/`);
+}
+
+export async function recordPayment(paymentData) {
+  return apiRequest('/api/payments/', {
+    method: 'POST',
+    body: JSON.stringify(paymentData),
+  });
+}
+
+export async function getReportsSummary(params = {}) {
+  const queryParams = new URLSearchParams();
+  if (params.preset) queryParams.append('preset', params.preset);
+  if (params.start_date) queryParams.append('start_date', params.start_date);
+  if (params.end_date) queryParams.append('end_date', params.end_date);
+  const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  return apiRequest(`/api/reports/summary/${query}`);
+}
+
+export async function downloadFinancialReportPdf() {
+  const response = await fetch('/api/reports/export/', {
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to download financial report PDF.');
+  }
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'invoiceflow_report.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 }

@@ -1,5 +1,5 @@
 from django.urls import path
-from . import api_views
+from . import api_views, views
 
 urlpatterns = [
     # Health check
@@ -19,4 +19,15 @@ urlpatterns = [
     # Product endpoints
     path("products/", api_views.api_products_list_create, name="api_products_list_create"),
     path("products/<int:product_id>/", api_views.api_product_detail, name="api_product_detail"),
+    # Invoice endpoints
+    path("invoices/", api_views.api_invoices_list_create, name="api_invoices_list_create"),
+    path("invoices/<int:invoice_id>/", api_views.api_invoice_detail, name="api_invoice_detail"),
+    path("invoices/<int:invoice_id>/cancel/", api_views.api_invoice_cancel, name="api_invoice_cancel"),
+    path("invoices/<int:invoice_id>/pdf/", views.generate_invoice_pdf, name="api_invoice_pdf"),
+    # Payment endpoints
+    path("payments/", api_views.api_payments_list_create, name="api_payments_list_create"),
+    path("payments/<int:payment_id>/", api_views.api_payment_detail, name="api_payment_detail"),
+    # Report & Analytics endpoints
+    path("reports/summary/", api_views.api_reports_summary, name="api_reports_summary"),
+    path("reports/export/", views.export_report, name="api_export_report"),
 ]

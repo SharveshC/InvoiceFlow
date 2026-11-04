@@ -38,30 +38,34 @@ function Customers({ currentCompany }) {
     }
   }, [currentCompany]);
 
-  // Load customers whenever currentCompany or search changes
+  // Load customers whenever currentCompany or search changes (debounced by 300ms)
   useEffect(() => {
     let ignore = false;
     if (!currentCompany) return;
 
-    getCustomers(search)
-      .then((data) => {
-        if (!ignore) {
-          setCustomers(data);
-        }
-      })
-      .catch((err) => {
-        if (!ignore) {
-          setError(err.message || 'Failed to load customers.');
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setLoading(false);
-        }
-      });
+    const delay = search ? 300 : 0;
+    const timer = setTimeout(() => {
+      getCustomers(search)
+        .then((data) => {
+          if (!ignore) {
+            setCustomers(data);
+          }
+        })
+        .catch((err) => {
+          if (!ignore) {
+            setError(err.message || 'Failed to load customers.');
+          }
+        })
+        .finally(() => {
+          if (!ignore) {
+            setLoading(false);
+          }
+        });
+    }, delay);
 
     return () => {
       ignore = true;
+      clearTimeout(timer);
     };
   }, [currentCompany, search]);
 

@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { createCompany, switchCompany } from '../services/api';
 import Customers from './Customers';
 import Products from './Products';
+import Invoices from './Invoices';
+import Payments from './Payments';
+import Reports from './Reports';
 
 function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onLogout }) {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'clients' | 'products'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'clients' | 'products' | 'invoices' | 'payments' | 'reports'
   const [showCreateForm, setShowCreateForm] = useState(companies.length === 0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -135,14 +138,26 @@ function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onL
         >
           Products
         </button>
-        <button type="button" className="nav-item disabled" title="Coming in Phase 6">
-          Invoices <span className="nav-badge">Phase 6</span>
+        <button
+          type="button"
+          className={`nav-item ${activeTab === 'invoices' ? 'active' : ''}`}
+          onClick={() => setActiveTab('invoices')}
+        >
+          Invoices
         </button>
-        <button type="button" className="nav-item disabled" title="Coming in Phase 7">
-          Payments <span className="nav-badge">Phase 7</span>
+        <button
+          type="button"
+          className={`nav-item ${activeTab === 'payments' ? 'active' : ''}`}
+          onClick={() => setActiveTab('payments')}
+        >
+          Payments
         </button>
-        <button type="button" className="nav-item disabled" title="Coming in Phase 8">
-          Reports <span className="nav-badge">Phase 8</span>
+        <button
+          type="button"
+          className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`}
+          onClick={() => setActiveTab('reports')}
+        >
+          Reports & Analytics
         </button>
       </nav>
 
@@ -267,6 +282,12 @@ function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onL
           <Customers currentCompany={currentCompany} />
         ) : activeTab === 'products' ? (
           <Products currentCompany={currentCompany} />
+        ) : activeTab === 'invoices' ? (
+          <Invoices currentCompany={currentCompany} />
+        ) : activeTab === 'payments' ? (
+          <Payments currentCompany={currentCompany} />
+        ) : activeTab === 'reports' ? (
+          <Reports currentCompany={currentCompany} />
         ) : (
           <>
             {/* Active Company Overview Card */}
@@ -482,20 +503,37 @@ function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onL
                 <span className="module-action-link">Open Products &rarr;</span>
               </div>
 
-              <div className="module-card">
+              <div
+                className="module-card clickable-module"
+                onClick={() => setActiveTab('invoices')}
+              >
                 <div>
                   <h4>Invoices</h4>
                   <p>Draft, dispatch, and export professional PDF invoices.</p>
                 </div>
-                <span className="module-phase-badge">Phase 6</span>
+                <span className="module-action-link">Open Invoices &rarr;</span>
               </div>
 
-              <div className="module-card">
+              <div
+                className="module-card clickable-module"
+                onClick={() => setActiveTab('payments')}
+              >
                 <div>
                   <h4>Payments</h4>
                   <p>Record transactions, payment methods, and revenue flow.</p>
                 </div>
-                <span className="module-phase-badge">Phase 7</span>
+                <span className="module-action-link">Open Payments &rarr;</span>
+              </div>
+
+              <div
+                className="module-card clickable-module"
+                onClick={() => setActiveTab('reports')}
+              >
+                <div>
+                  <h4>Reports & Analytics</h4>
+                  <p>Financial summaries, revenue trends, and audit exports.</p>
+                </div>
+                <span className="module-action-link">Open Analytics &rarr;</span>
               </div>
             </section>
           </>
