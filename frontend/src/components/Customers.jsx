@@ -5,8 +5,9 @@ import {
   updateCustomer,
   deleteCustomer,
 } from '../services/api';
+import CompanyRequiredState from './CompanyRequiredState';
 
-function Customers({ currentCompany }) {
+function Customers({ currentCompany, onNavigateToCreateCompany }) {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -154,10 +155,10 @@ function Customers({ currentCompany }) {
 
   if (!currentCompany) {
     return (
-      <div className="card empty-state-box">
-        <h4>No Active Company Selected</h4>
-        <p>Please create or select an active company on the dashboard first.</p>
-      </div>
+      <CompanyRequiredState
+        message="You need to create a company profile before you can manage clients."
+        onNavigateToCreateCompany={onNavigateToCreateCompany}
+      />
     );
   }
 

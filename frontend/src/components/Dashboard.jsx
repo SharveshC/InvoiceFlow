@@ -78,6 +78,11 @@ function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onL
     }
   };
 
+  const handleNavigateToCreateCompany = () => {
+    setActiveTab('dashboard');
+    setShowCreateForm(true);
+  };
+
   return (
     <div className="dashboard-container">
       {/* Top Header Bar */}
@@ -190,7 +195,32 @@ function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onL
 
       {/* Main Content */}
       <main>
-        {companies.length === 0 ? (
+        {activeTab === 'clients' ? (
+          <Customers
+            currentCompany={currentCompany}
+            onNavigateToCreateCompany={handleNavigateToCreateCompany}
+          />
+        ) : activeTab === 'products' ? (
+          <Products
+            currentCompany={currentCompany}
+            onNavigateToCreateCompany={handleNavigateToCreateCompany}
+          />
+        ) : activeTab === 'invoices' ? (
+          <Invoices
+            currentCompany={currentCompany}
+            onNavigateToCreateCompany={handleNavigateToCreateCompany}
+          />
+        ) : activeTab === 'payments' ? (
+          <Payments
+            currentCompany={currentCompany}
+            onNavigateToCreateCompany={handleNavigateToCreateCompany}
+          />
+        ) : activeTab === 'reports' ? (
+          <Reports
+            currentCompany={currentCompany}
+            onNavigateToCreateCompany={handleNavigateToCreateCompany}
+          />
+        ) : companies.length === 0 ? (
           <section className="card">
             <div className="card-header-flex">
               <div>
@@ -278,16 +308,6 @@ function Dashboard({ user, currentCompany, companies = [], onCompanyUpdated, onL
               </div>
             </form>
           </section>
-        ) : activeTab === 'clients' ? (
-          <Customers currentCompany={currentCompany} />
-        ) : activeTab === 'products' ? (
-          <Products currentCompany={currentCompany} />
-        ) : activeTab === 'invoices' ? (
-          <Invoices currentCompany={currentCompany} />
-        ) : activeTab === 'payments' ? (
-          <Payments currentCompany={currentCompany} />
-        ) : activeTab === 'reports' ? (
-          <Reports currentCompany={currentCompany} />
         ) : (
           <>
             {/* Active Company Overview Card */}

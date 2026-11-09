@@ -91,10 +91,13 @@ WSGI_APPLICATION = "InvoiceFlow.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# Check if running automated tests
+IS_TESTING = "test" in sys.argv
+
 # Database configuration
 # Supports Supabase DATABASE_URL (via IPv4 Session Pooler) or local DB_* settings
 database_url = os.getenv("DATABASE_URL")
-if database_url:
+if database_url and not IS_TESTING:
     try:
         import dj_database_url
         DATABASES = {

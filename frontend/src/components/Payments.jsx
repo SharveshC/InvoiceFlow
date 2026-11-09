@@ -4,8 +4,9 @@ import {
   recordPayment,
   getInvoices,
 } from '../services/api';
+import CompanyRequiredState from './CompanyRequiredState';
 
-function Payments({ currentCompany }) {
+function Payments({ currentCompany, onNavigateToCreateCompany }) {
   // Payments list & stats
   const [payments, setPayments] = useState([]);
   const [stats, setStats] = useState({
@@ -196,6 +197,15 @@ function Payments({ currentCompany }) {
       </span>
     );
   };
+
+  if (!currentCompany) {
+    return (
+      <CompanyRequiredState
+        message="You need to create a company profile before you can manage payments."
+        onNavigateToCreateCompany={onNavigateToCreateCompany}
+      />
+    );
+  }
 
   return (
     <div className="payments-management-container">

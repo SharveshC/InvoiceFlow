@@ -2989,3 +2989,89 @@ class FullBusinessLifecycleAndIntegrationTests(TestCase):
 
         # Subsequent access fails with 403
         self.assertEqual(self.client.get(reverse("api_customers_list_create")).status_code, 403)
+
+    def test_company_empty_state_and_onboarding_workflow(self):
+        """
+        Verify that a new user without a company receives 400 with 'no active company' error
+        on all domain endpoints, then creates a company, immediately gaining access to all
+        sections without requiring logout/login, and data isolation between companies is enforced.
+        """
+        user = User.objects.create_user("onboard_user", "onboard@example.com", "Password123!")
+        self.client.force_login(user)
+
+        # 1. New user without company gets 400 on all core endpoints
+        endpoints = [
+            reverse("api_customers_list_create"),
+            reverse("api_products_list_create"),
+            reverse("api_invoices_list_create"),
+            reverse("api_payments_list_create"),
+            reverse("api_reports_summary"),
+        ]
+        for url in endpoints:
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, 400, f"Expected 400 for company-less user on {url}, got {res.status_code}")
+            self.assertIn("company", res.json().get("error", "").lower())
+
+        # 2. User creates their first company via API
+        create_res = self.client.post(
+            reverse("api_create_company"),
+            data={
+                "name": "First Venture Corp",
+                "email": "ops@firstventure.com",
+                "phone": "9876543210",
+                "address": "123 Venture Blvd",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(create_res.status_code, 201)
+        company1_id = create_res.json()["company"]["id"]
+
+        # 3. Immediately accessed all sections without re-login
+        for url in endpoints:
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, 200, f"Expected 200 after onboarding on {url}, got {res.status_code}")
+
+        # 4. User creates a second company and switches
+        create_res2 = self.client.post(
+            reverse("api_create_company"),
+            data={
+                "name": "Second Venture Corp",
+                "email": "ops@secondventure.com",
+                "phone": "9876543211",
+                "address": "456 Venture Blvd",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(create_res2.status_code, 201)
+        company2_id = create_res2.json()["company"]["id"]
+
+        # Add customer to Company 2
+        cust_res = self.client.post(
+            reverse("api_customers_list_create"),
+            data={
+                "name": "Client of Co 2",
+                "email": "client2@test.com",
+                "phone": "1112223333",
+                "address": "Street 2",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(cust_res.status_code, 201)
+
+        # Switch back to Company 1
+        switch_res = self.client.post(reverse("api_switch_company", args=[company1_id]))
+        self.assertEqual(switch_res.status_code, 200)
+
+        # Company 1 customers list does not contain Company 2's customer
+        c1_custs = self.client.get(reverse("api_customers_list_create")).json()
+        self.assertEqual(len(c1_custs), 0)
+
+        # Switch to Company 2
+        switch_res2 = self.client.post(reverse("api_switch_company", args=[company2_id]))
+        self.assertEqual(switch_res2.status_code, 200)
+
+        # Company 2 customers list contains Company 2's customer
+        c2_custs = self.client.get(reverse("api_customers_list_create")).json()
+        self.assertEqual(len(c2_custs), 1)
+        self.assertEqual(c2_custs[0]["name"], "Client of Co 2")
+

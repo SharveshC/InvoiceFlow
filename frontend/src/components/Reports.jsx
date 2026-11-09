@@ -3,8 +3,9 @@ import {
   getReportsSummary,
   downloadFinancialReportPdf,
 } from '../services/api';
+import CompanyRequiredState from './CompanyRequiredState';
 
-function Reports({ currentCompany }) {
+function Reports({ currentCompany, onNavigateToCreateCompany }) {
   // Report data state
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -182,6 +183,15 @@ function Reports({ currentCompany }) {
   const monthlyTrend = data?.monthly_trend || [];
   const topCustomers = data?.top_customers || [];
   const paymentMethods = data?.payment_methods || [];
+
+  if (!currentCompany) {
+    return (
+      <CompanyRequiredState
+        message="You need to create a company profile before you can view reports and analytics."
+        onNavigateToCreateCompany={onNavigateToCreateCompany}
+      />
+    );
+  }
 
   return (
     <div className="reports-container">

@@ -9,8 +9,9 @@ import {
   getCustomers,
   getProducts,
 } from '../services/api';
+import CompanyRequiredState from './CompanyRequiredState';
 
-function Invoices({ currentCompany }) {
+function Invoices({ currentCompany, onNavigateToCreateCompany }) {
   // Navigation & View Mode: 'list' | 'create' | 'edit' | 'details'
   const [viewMode, setViewMode] = useState('list');
   const [invoices, setInvoices] = useState([]);
@@ -420,10 +421,10 @@ function Invoices({ currentCompany }) {
 
   if (!currentCompany) {
     return (
-      <div className="card empty-state-box">
-        <h4>No Active Company Selected</h4>
-        <p>Please create or select an active company on the dashboard first.</p>
-      </div>
+      <CompanyRequiredState
+        message="You need to create a company profile before you can create and manage invoices."
+        onNavigateToCreateCompany={onNavigateToCreateCompany}
+      />
     );
   }
 
