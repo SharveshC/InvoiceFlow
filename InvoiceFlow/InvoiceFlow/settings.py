@@ -239,6 +239,7 @@ else:
 
 # Cookie Security Flags
 SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # CSRF cookie must not be HttpOnly so React frontend can read the csrftoken cookie and send X-CSRFToken header
 CSRF_COOKIE_HTTPONLY = False
 
