@@ -19,27 +19,6 @@ Designed for multi-tenant business operations, InvoiceFlow enables companies and
 
 ---
 
-## 📸 Preview
-
-### 📊 Dashboard
-![Dashboard](InvoiceFlow/assets/dashboard.png)
-
-### 👥 Clients
-![Clients](InvoiceFlow/assets/clients.png)
-
-### 📦 Products & Services
-![Products](InvoiceFlow/assets/products.png)
-
-### 🧾 Creating Invoices
-![Creating Invoice](InvoiceFlow/assets/Creating_Invoice.png)
-
-### 📄 Invoice View & PDF Generation
-![Invoice View](InvoiceFlow/assets/Invoice.png)
-
-### 💳 Payments Tracking
-![Payments](InvoiceFlow/assets/payments.png)
-
----
 
 ## ✨ Key Features & Architecture
 
