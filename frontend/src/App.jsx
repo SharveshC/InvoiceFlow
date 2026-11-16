@@ -53,6 +53,8 @@ function getTabSession() {
       }
     }
 
+    
+
     return session;
   } catch {
     sessionStorage.removeItem(TAB_SESSION_KEY);
