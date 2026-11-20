@@ -199,6 +199,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://invoiceflow-henna-xi.vercel.app",
+    "https://invoiceflow360.vercel.app",
 ]
 
 # Allow additional production trusted origins from environment if configured
